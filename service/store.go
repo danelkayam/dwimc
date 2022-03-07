@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -9,7 +10,7 @@ import (
 )
 
 type Store struct {
-	Context        context.Context
+	Context    context.Context
 	dbClient   *mongo.Client
 	collection *mongo.Collection
 }
@@ -53,28 +54,68 @@ func (store *Store) Close(cctx context.Context) error {
 	return nil
 }
 
-// TODO: implement this
-func (store *Store) Upsert(params UpdateParams) (*Device, error) {
-	return &Device{
-		Serial:   params.Serial,
-		Name:     params.Name,
-		Position: params.Position,
-	}, nil
+func (store *Store) Upsert(params UpdateParams) (*Operation, error) {
+	updatedAt := time.Now().UTC()
+
+	_, err := store.collection.UpdateOne(
+		store.Context,
+		bson.M{"serial": params.Serial},
+		bson.M{
+			"$set": bson.M{
+				"serial":    params.Serial,
+				"name":      params.Name,
+				"position":  params.Position,
+				"updatedAt": updatedAt,
+			},
+			"$setOnInsert": bson.M{"createdAt": updatedAt},
+		},
+		options.Update().SetUpsert(true),
+	)
+
+	if err != nil {
+		return &Operation{Success: false}, err
+	}
+
+	return &Operation{Success: true}, nil
 }
 
-// TODO: implement this
-func (store *Store) GetOne(image string) (*Device, error) {
-	return &Device{
-		Serial: "car-serial",
-		Name:   "my car",
-		Position: Position{
-			Latitude:  32.1786076,
-			Longitude: 34.9172212,
-		},
-	}, nil
+func (store *Store) GetOne(serial string) (*Device, error) {
+	var device Device
+
+	err := store.collection.FindOne(store.Context, bson.M{"serial": serial}).Decode(&device)
+
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &device, nil
 }
 
 // TODO: implement this
 func (store *Store) GetAll() ([]Device, error) {
-	return []Device{}, nil
+	cursor, err := store.collection.Find(store.Context, bson.M{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(store.Context)
+
+	devices := make([]Device, 0)
+
+	for cursor.Next(store.Context) {
+		var device Device
+
+		if err = cursor.Decode(&device); err != nil {
+			return nil, err
+		}
+
+		devices = append(devices, device)
+	}
+
+	return devices, nil
 }

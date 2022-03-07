@@ -32,7 +32,7 @@ func (service *Service) Start(port string) error {
 
 	apiRouter.GET("/devices/:device", service.handleGet)
 	apiRouter.GET("/devices", service.handleGetAll)
-	apiRouter.POST("/device", service.handlePost)
+	apiRouter.POST("/devices", service.handlePost)
 
 	service.server = &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
@@ -78,7 +78,7 @@ func (service *Service) handlePost(c *gin.Context) {
 		return
 	}
 
-	device, err := service.Store.Upsert(params)
+	operation, err := service.Store.Upsert(params)
 
 	if err != nil {
 		log.Printf("Failed upserting device: %s\n", err)
@@ -91,7 +91,7 @@ func (service *Service) handlePost(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, Response{
-		Data:  device,
+		Data:  operation,
 		Error: nil,
 	})
 }
