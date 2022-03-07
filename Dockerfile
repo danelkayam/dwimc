@@ -22,7 +22,7 @@ COPY --from=builder /build/out/dwimc .
 
 ENV DATABASE_URI="mongodb://mongo" \
     DATABASE_NAME="dwimc" \
-    SERVICE_PORT="1337" \
+    PORT="1337" \
     SECRET_API_KEY="" \
     GIN_MODE=release
 

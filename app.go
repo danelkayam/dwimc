@@ -72,7 +72,7 @@ func main() {
 func getEnvs() *envs {
 	databaseUri := os.Getenv("DATABASE_URI")
 	databaseName := os.Getenv("DATABASE_NAME")
-	servicePort := os.Getenv("SERVICE_PORT")
+	servicePort := os.Getenv("PORT")
 	secretApiKey := os.Getenv("SECRET_API_KEY")
 
 	if len(databaseUri) == 0 {

@@ -39,6 +39,8 @@ func (service *Service) Start(port string) error {
 		Handler: router,
 	}
 
+	log.Printf("Lifting serice on port: %v\n", port)
+
 	return service.server.ListenAndServe()
 }
 
