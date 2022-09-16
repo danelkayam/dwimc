@@ -56,7 +56,7 @@ curl -X POST http://localhost:1337/api/devices \
 ```
 
 ### Get All
-Inserting new device / updating existing one by performing:
+Retriving all devices:
 ```bash
 curl http://localhost:1337/api/devices \
    -H 'Content-Type: application/json' \
@@ -64,7 +64,7 @@ curl http://localhost:1337/api/devices \
 ```
 
 ### Get One
-Inserting new device / updating existing one by performing:
+Retrive single device:
 ```bash
 curl http://localhost:1337/api/devices/serenity:123 \
    -H 'Content-Type: application/json' \
