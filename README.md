@@ -3,8 +3,8 @@ Simple device last known location service (Dude, where is my car?), De-wim-C in 
 This service was designed for personal use.
 
 ## Motivation
-I'm not driving on daily basis these day, remembering where I've parked my car and
-searching for it tends to be time consuming.
+I'm not driving on daily basis these days, remembering where I've parked my car and
+searching for it tends to be a time consuming chore.
 
 ## Common usage
 
