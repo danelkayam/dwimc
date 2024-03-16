@@ -80,16 +80,11 @@ func (service *Service) handlePost(c *gin.Context) {
 		return
 	}
 
+	// TODO: - validate params structure
+
 	operation, err := service.Store.Upsert(params)
 
-	// TODO: - export to function
-	if err != nil {
-		log.Printf("Failed upserting device: %s\n", err)
-
-		c.JSON(http.StatusInternalServerError, Response{
-			Data:  nil,
-			Error: &ErrorResponse{Message: "Something went wrong!"},
-		})
+	if service.handleDatabaseError(err, "Failed upserting device", c) {
 		return
 	}
 
@@ -101,17 +96,9 @@ func (service *Service) handlePost(c *gin.Context) {
 
 func (service *Service) handleGet(c *gin.Context) {
 	deviceId := c.Param("device")
-
 	device, err := service.Store.GetOne(deviceId)
 
-	// TODO: - export to function
-	if err != nil {
-		log.Printf("Failed getting device: %s\n", err)
-
-		c.JSON(http.StatusInternalServerError, Response{
-			Data:  nil,
-			Error: &ErrorResponse{Message: "Something went wrong!"},
-		})
+	if service.handleDatabaseError(err, "Failed getting device", c) {
 		return
 	}
 
@@ -132,14 +119,7 @@ func (service *Service) handleGet(c *gin.Context) {
 func (service *Service) handleGetAll(c *gin.Context) {
 	devices, err := service.Store.GetAll()
 
-	// TODO: - export to function
-	if err != nil {
-		log.Printf("Failed getting devices: %s\n", err)
-
-		c.JSON(http.StatusInternalServerError, Response{
-			Data:  nil,
-			Error: &ErrorResponse{Message: "Something went wrong!"},
-		})
+	if service.handleDatabaseError(err, "Failed getting devices", c) {
 		return
 	}
 
@@ -147,4 +127,21 @@ func (service *Service) handleGetAll(c *gin.Context) {
 		Data:  devices,
 		Error: nil,
 	})
+}
+
+// handleDatabaseError handles Internal Server Error response if the given err argument is not nil.
+// returns true if an error response was sent back and calling function should be terminate,
+// false otherwise.
+func (service *Service) handleDatabaseError(err error, message string, c *gin.Context) bool {
+	if err != nil {
+		log.Printf("%s: %s\n", message, err)
+
+		c.JSON(http.StatusInternalServerError, Response{
+			Data:  nil,
+			Error: &ErrorResponse{Message: "Something went wrong!"},
+		})
+		return true
+	}
+
+	return false
 }
