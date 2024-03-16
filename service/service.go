@@ -48,6 +48,8 @@ func (service *Service) Stop(ctx context.Context) error {
 	return service.server.Shutdown(ctx)
 }
 
+// Middlewares
+
 func validateApiKey(secretApiKey string) gin.HandlerFunc {
 	if len(secretApiKey) > 0 {
 		return func(c *gin.Context) {
@@ -69,18 +71,18 @@ func validateApiKey(secretApiKey string) gin.HandlerFunc {
 	return func(c *gin.Context) { c.Next() }
 }
 
+// API handlers
+
 func (service *Service) handlePost(c *gin.Context) {
 	var params UpdateParams
 
-	if err := c.ShouldBind(&params); err != nil {
+	if err := c.ShouldBindJSON(&params); err != nil {
 		c.JSON(http.StatusBadRequest, Response{
 			Data:  nil,
 			Error: &ErrorResponse{Message: "Invalid request body!"},
 		})
 		return
 	}
-
-	// TODO: - validate params structure
 
 	operation, err := service.Store.Upsert(params)
 
@@ -128,6 +130,8 @@ func (service *Service) handleGetAll(c *gin.Context) {
 		Error: nil,
 	})
 }
+
+// Helper functions
 
 // handleDatabaseError handles Internal Server Error response if the given err argument is not nil.
 // returns true if an error response was sent back and calling function should be terminate,

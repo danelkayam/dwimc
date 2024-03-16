@@ -3,8 +3,8 @@ package service
 import "time"
 
 type Location struct {
-	Latitude  float64 `json:"latitude" bson:"latitude"`
-	Longitude float64 `json:"longitude" bson:"longitude"`
+	Latitude  float64 `json:"latitude" binding:"required,latitude" bson:"latitude"`
+	Longitude float64 `json:"longitude" binding:"required,longitude" bson:"longitude"`
 }
 
 type Device struct {
@@ -20,7 +20,7 @@ type Operation struct {
 }
 
 type UpdateParams struct {
-	Serial   string   `json:"serial"`
-	Name     string   `json:"name"`
-	Location Location `json:"location"`
+	Serial   string   `json:"serial" binding:"required,min=4,max=64"`
+	Name     string   `json:"name" binding:"required,max=64"`
+	Location Location `json:"location" binding:"required"`
 }
