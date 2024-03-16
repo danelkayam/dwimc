@@ -2,7 +2,7 @@ package service
 
 import "time"
 
-type Position struct {
+type Location struct {
 	Latitude  float64 `json:"latitude" bson:"latitude"`
 	Longitude float64 `json:"longitude" bson:"longitude"`
 }
@@ -10,7 +10,7 @@ type Position struct {
 type Device struct {
 	Serial    string    `json:"serial" bson:"serial"`
 	Name      string    `json:"name" bson:"name"`
-	Position  Position  `json:"position" bson:"position"`
+	Location  Location  `json:"location" bson:"location"`
 	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
 }
@@ -22,5 +22,5 @@ type Operation struct {
 type UpdateParams struct {
 	Serial   string   `json:"serial"`
 	Name     string   `json:"name"`
-	Position Position `json:"position"`
+	Location Location `json:"location"`
 }

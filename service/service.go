@@ -39,7 +39,7 @@ func (service *Service) Start(port string) error {
 		Handler: router,
 	}
 
-	log.Printf("Lifting serice on port: %v\n", port)
+	log.Printf("Lifting service on port: %v\n", port)
 
 	return service.server.ListenAndServe()
 }
@@ -82,6 +82,7 @@ func (service *Service) handlePost(c *gin.Context) {
 
 	operation, err := service.Store.Upsert(params)
 
+	// TODO: - export to function
 	if err != nil {
 		log.Printf("Failed upserting device: %s\n", err)
 
@@ -103,6 +104,7 @@ func (service *Service) handleGet(c *gin.Context) {
 
 	device, err := service.Store.GetOne(deviceId)
 
+	// TODO: - export to function
 	if err != nil {
 		log.Printf("Failed getting device: %s\n", err)
 
@@ -130,6 +132,7 @@ func (service *Service) handleGet(c *gin.Context) {
 func (service *Service) handleGetAll(c *gin.Context) {
 	devices, err := service.Store.GetAll()
 
+	// TODO: - export to function
 	if err != nil {
 		log.Printf("Failed getting devices: %s\n", err)
 

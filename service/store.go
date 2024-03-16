@@ -64,7 +64,7 @@ func (store *Store) Upsert(params UpdateParams) (*Operation, error) {
 			"$set": bson.M{
 				"serial":    params.Serial,
 				"name":      params.Name,
-				"position":  params.Position,
+				"location":  params.Location,
 				"updatedAt": updatedAt,
 			},
 			"$setOnInsert": bson.M{"createdAt": updatedAt},
@@ -95,7 +95,6 @@ func (store *Store) GetOne(serial string) (*Device, error) {
 	return &device, nil
 }
 
-// TODO: implement this
 func (store *Store) GetAll() ([]Device, error) {
 	cursor, err := store.collection.Find(store.Context, bson.M{})
 
