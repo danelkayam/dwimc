@@ -15,10 +15,16 @@ type Store struct {
 	collection *mongo.Collection
 }
 
+const DB_OP_TIMEOUT_DURATION = 5 * time.Second
 const COLLECTION_NAME_DEVICES = "devices"
 
 func (store *Store) Init(dbUri string, dbName string) error {
-	dbClient, err := mongo.Connect(store.Context, options.Client().ApplyURI(dbUri))
+	// sets default parameters to db
+	clientOptions := options.Client()
+	clientOptions.ApplyURI(dbUri)
+	clientOptions.SetTimeout(DB_OP_TIMEOUT_DURATION)
+
+	dbClient, err := mongo.Connect(store.Context, clientOptions)
 
 	if err != nil {
 		return err
