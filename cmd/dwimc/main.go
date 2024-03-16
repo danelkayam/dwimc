@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	service "dwimc/service"
+	service "dwimc/internal"
 )
 
 type envs struct {
