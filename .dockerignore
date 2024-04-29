@@ -4,5 +4,6 @@ data
 .editorconfig
 
 Dockerfile
+docker-compose.yml
 .dockerignore
 
