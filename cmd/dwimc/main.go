@@ -6,10 +6,17 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/joho/godotenv"
+
 	service "dwimc/internal"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+	  log.Println("Warning - error loading .env file")
+	}
+
 	isShuttingDown := false
 
 	params := service.ServiceParams{
