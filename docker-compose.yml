@@ -9,8 +9,8 @@ services:
     environment:
       - DATABASE_URI=mongodb://mongo:27017
       - DATABASE_NAME=dwimc
-      - PORT=1337
       - SECRET_API_KEY=${SECRET_API_KEY}
+      - PORT=1337
     depends_on:
       - mongo
     networks:
