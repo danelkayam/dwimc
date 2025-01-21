@@ -21,7 +21,7 @@ services:
     restart: always
     image: mongo:latest
     volumes:
-      - ./data:/data/db
+      - ./.data:/data/db
     networks:
       - backend-database
     expose:

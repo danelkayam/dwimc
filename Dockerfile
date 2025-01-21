@@ -8,8 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./out/dwimc ./cmd/dwimc/
-
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 make build
 
 FROM alpine:3.21.2
 
@@ -17,7 +16,7 @@ RUN mkdir /app
 
 WORKDIR /app
 
-COPY --from=builder /build/out/dwimc .
+COPY --from=builder /build/bin/dwimc .
 
 ENV DATABASE_URI="mongodb://mongo" \
     DATABASE_NAME="dwimc" \

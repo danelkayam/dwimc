@@ -1,8 +1,10 @@
-data
+.data
+.env
 .git
 .gitignore
 .editorconfig
 
+bin
 Dockerfile
 docker-compose.yml
 .dockerignore

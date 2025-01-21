@@ -12,5 +12,6 @@
 *.out
 
 # project files
-data
 .env
+.data/
+bin/
