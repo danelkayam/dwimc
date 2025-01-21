@@ -11,7 +11,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./out/dwimc ./cmd/dwimc/
 
 
-FROM alpine:3.19.1
+FROM alpine:3.21.2
 
 RUN mkdir /app
 
