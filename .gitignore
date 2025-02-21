@@ -14,4 +14,7 @@
 # project files
 .env
 .data/
+.vscode
 bin/
+build/
+dwimc.db

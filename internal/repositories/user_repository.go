@@ -49,7 +49,7 @@ func (r *SQLUserRepository) GetByEmail(email string) (*model.User, error) {
 func (r *SQLUserRepository) Create(email string, password string, token string) (*model.User, error) {
 	query := `
 		INSERT INTO users (email, password, token)
-			VALUES (:email, :password, :token)
+			VALUES ($1, $2, $3)
 			RETURNING *
 	`
 	newUser := model.User{}
@@ -57,7 +57,6 @@ func (r *SQLUserRepository) Create(email string, password string, token string) 
 	err := r.db.Get(&newUser, query, email, password, token)
 	// TODO - Handle constraints (email unique) errors - User Already Exist
 	if err != nil {
-		// TODO - handle errors
 		return nil, err
 	}
 
