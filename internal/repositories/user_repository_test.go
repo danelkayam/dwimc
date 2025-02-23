@@ -79,7 +79,7 @@ func TestUserRepository(t *testing.T) {
 
 		// TODO - implement this - update password
 		// TODO - implement this - update token
-		// TODO - impelemnt this - update both
+		// TODO - implement this - update both
 	})
 
 	t.Run("delete user", func(t *testing.T) {
@@ -133,6 +133,6 @@ func checkGetUser(t *testing.T, retrievedUser *model.User, user *model.User, err
 	}
 
 	if !reflect.DeepEqual(retrievedUser, user) {
-		t.Fatalf("Got %+v, expected %+v", retrievedUser, user)
+		t.Fatalf("Got %+v, expected %+v (user ID: %d)", retrievedUser, user, user.ID)
 	}
 }
