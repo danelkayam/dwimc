@@ -4,15 +4,31 @@ import (
 	"database/sql"
 	"dwimc/internal/model"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
+
+type UpdateField func(updateFields *map[string]interface{})
+
+func WithPassword(password string) UpdateField {
+	return func(updateFields *map[string]interface{}) {
+		(*updateFields)["password"] = password
+	}
+}
+
+func WithToken(token string) UpdateField {
+	return func(updateFields *map[string]interface{}) {
+		(*updateFields)["token"] = token
+	}
+}
 
 type UserRepository interface {
 	GetBy(id model.ID) (*model.User, error)
 	GetByEmail(email string) (*model.User, error)
 	Create(email string, password string, token string) (*model.User, error)
-	Update(id model.ID, password string, token string) (*model.User, error)
+	Update(id model.ID, fields... UpdateField) (*model.User, error)
 	Delete(id model.ID) error
 }
 
@@ -63,21 +79,34 @@ func (r *SQLUserRepository) Create(email string, password string, token string) 
 	return &newUser, nil
 }
 
-func (r *SQLUserRepository) Update(id model.ID, password string, token string) (*model.User, error) {
-	// TODO: handle updating only password or token, if both empty, throw error
-	query := `
-		UPDATE users
-			SET password = ?,
-				token = ?,
-				updated_at = CURRENT_TIMESTAMP
-			WHERE id = ?
-			RETURNING *
-	`
+func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.User, error) {
+	if len(fields) == 0 {
+		return nil, fmt.Errorf("Update error: missing fields")
+	}
+
+	query := "UPDATE users SET "
+	updates := map[string]interface{}{}
+    setClauses := []string{}
+    args := []interface{}{}
+
+	for _, field := range fields {
+		field(&updates)
+	}
+
+	for field, value := range updates {
+		setClauses = append(setClauses, fmt.Sprintf("%s = ?", field))
+		args = append(args, value)
+	}
+
+	setClauses = append(setClauses, "updated_at = CURRENT_TIMESTAMP")
+
+	query += strings.Join(setClauses, ", ") + " WHERE id = ? RETURNING *"
+    args = append(args, id)
+
 	updatedUser := model.User{}
 
-	err := r.db.Get(&updatedUser, query, token, password, id)
+	err := r.db.Get(&updatedUser, query, args...)
 	if err != nil {
-		// TODO - handle errors
 		return nil, err
 	}
 
@@ -102,7 +131,6 @@ func getUserBy[T model.ID | string](db *sqlx.DB, query string, field T) (*model.
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// TODO - handle this better?
 			return nil, nil
 		}
 
