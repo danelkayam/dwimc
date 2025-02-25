@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"dwimc/internal/model"
+	testutils "dwimc/internal/test_utils"
 )
 
 type testUser struct {
@@ -97,19 +99,118 @@ func TestUserRepository(t *testing.T) {
 		db := setupTestDB(t)
 		repo := NewSQLUserRepository(db)
 
-		t.Run("update all fields", func(t *testing.T) {
+		t.Run("all fields", func(t *testing.T) {
 			t.Parallel()
 
-			_, err := repo.Create(testUsers[0].email, testUsers[0].password, testUsers[0].token)
+			createdUser, err := repo.Create(testUsers[0].email, testUsers[0].password, testUsers[0].token)
 			if err != nil {
 				t.Fatalf("Create User failed: %v", err)
 			}
+
+			// sets up delay for fooling updated_at field in db.
+			time.Sleep(time.Millisecond * 500)
+
+			updatedUser, err := repo.Update(createdUser.ID,
+				WithPassword("updated-password"), WithToken("updated-token"))
+			if err != nil {
+				t.Fatalf("Update User failed: %v", err)
+			}
+
+			testutils.CheckUpdatedStruct(createdUser, updatedUser,
+				func(field string, shouldBeEqual bool, got, expected interface{}) {
+					t.Helper()
+					if shouldBeEqual {
+						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
+					} else {
+						t.Fatalf("Field %q should have changed, but it did not: got %v, expected %v", field, got, expected)
+					}
+				},
+				testutils.WithFieldNotEqual[model.User]("UpdatedAt"),
+				testutils.WithFieldNotEqual[model.User]("Password"),
+				testutils.WithFieldNotEqual[model.User]("Token"),
+			)
 		})
 
-		// TODO - implement this - update none
+		t.Run("no fields", func(t *testing.T) {
+			t.Parallel()
+
+			createdUser, err := repo.Create(testUsers[1].email, testUsers[1].password, testUsers[1].token)
+			if err != nil {
+				t.Fatalf("Create User failed: %v", err)
+			}
+
+			// sets up delay for fooling updated_at field in db.
+			time.Sleep(time.Millisecond * 500)
+
+			_, err = repo.Update(createdUser.ID)
+			if err == nil {
+				t.Fatalf("Got: nil, expected: error for missing fields")
+			}
+		})
+
+		t.Run("update password", func(t *testing.T) {
+			t.Parallel()
+
+			createdUser, err := repo.Create(testUsers[2].email, testUsers[2].password, testUsers[2].token)
+			if err != nil {
+				t.Fatalf("Create User failed: %v", err)
+			}
+
+			// sets up delay for fooling updated_at field in db.
+			time.Sleep(time.Millisecond * 500)
+
+			updatedUser, err := repo.Update(createdUser.ID, WithPassword("updated-password"))
+			if err != nil {
+				t.Fatalf("Update User failed: %v", err)
+			}
+
+			testutils.CheckUpdatedStruct(createdUser, updatedUser,
+				func(field string, shouldBeEqual bool, got, expected interface{}) {
+					t.Helper()
+					if shouldBeEqual {
+						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
+					} else {
+						t.Fatalf("Field %q should have changed, but it did not: got %v, expected %v", field, got, expected)
+					}
+				},
+				testutils.WithFieldNotEqual[model.User]("UpdatedAt"),
+				testutils.WithFieldNotEqual[model.User]("Password"),
+			)
+		})
+
+
+		t.Run("update token", func(t *testing.T) {
+			t.Parallel()
+
+			createdUser, err := repo.Create(testUsers[3].email, testUsers[3].password, testUsers[3].token)
+			if err != nil {
+				t.Fatalf("Create User failed: %v", err)
+			}
+
+			// sets up delay for fooling updated_at field in db.
+			time.Sleep(time.Millisecond * 500)
+
+			updatedUser, err := repo.Update(createdUser.ID, WithToken("updated-token"))
+			if err != nil {
+				t.Fatalf("Update User failed: %v", err)
+			}
+
+			testutils.CheckUpdatedStruct(createdUser, updatedUser,
+				func(field string, shouldBeEqual bool, got, expected interface{}) {
+					t.Helper()
+					if shouldBeEqual {
+						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
+					} else {
+						t.Fatalf("Field %q should have changed, but it did not: got %v, expected %v", field, got, expected)
+					}
+				},
+				testutils.WithFieldNotEqual[model.User]("UpdatedAt"),
+				testutils.WithFieldNotEqual[model.User]("Token"),
+			)
+		})
+
 		// TODO - implement this - update password
 		// TODO - implement this - update token
-		// TODO - implement this - update all
 	})
 
 	t.Run("delete user", func(t *testing.T) {
