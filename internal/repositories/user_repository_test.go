@@ -208,9 +208,6 @@ func TestUserRepository(t *testing.T) {
 				testutils.WithFieldNotEqual[model.User]("Token"),
 			)
 		})
-
-		// TODO - implement this - update password
-		// TODO - implement this - update token
 	})
 
 	t.Run("delete user", func(t *testing.T) {
