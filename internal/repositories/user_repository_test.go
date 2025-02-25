@@ -108,10 +108,10 @@ func TestUserRepository(t *testing.T) {
 			}
 
 			// sets up delay for fooling updated_at field in db.
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Second * 1)
 
 			updatedUser, err := repo.Update(createdUser.ID,
-				WithPassword("updated-password"), WithToken("updated-token"))
+				WithPassword("updated-password-0"), WithToken("updated-token-0"))
 			if err != nil {
 				t.Fatalf("Update User failed: %v", err)
 			}
@@ -122,7 +122,7 @@ func TestUserRepository(t *testing.T) {
 					if shouldBeEqual {
 						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
 					} else {
-						t.Fatalf("Field %q should have changed, but it did not: got %v, expected %v", field, got, expected)
+						t.Fatalf("Field %q should have changed, but it did not: got %v", field, got)
 					}
 				},
 				testutils.WithFieldNotEqual[model.User]("UpdatedAt"),
@@ -140,7 +140,7 @@ func TestUserRepository(t *testing.T) {
 			}
 
 			// sets up delay for fooling updated_at field in db.
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Second * 1)
 
 			_, err = repo.Update(createdUser.ID)
 			if err == nil {
@@ -157,9 +157,9 @@ func TestUserRepository(t *testing.T) {
 			}
 
 			// sets up delay for fooling updated_at field in db.
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Second * 1)
 
-			updatedUser, err := repo.Update(createdUser.ID, WithPassword("updated-password"))
+			updatedUser, err := repo.Update(createdUser.ID, WithPassword("updated-password-2"))
 			if err != nil {
 				t.Fatalf("Update User failed: %v", err)
 			}
@@ -170,7 +170,7 @@ func TestUserRepository(t *testing.T) {
 					if shouldBeEqual {
 						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
 					} else {
-						t.Fatalf("Field %q should have changed, but it did not: got %v, expected %v", field, got, expected)
+						t.Fatalf("Field %q should have changed, but it did not: got %v", field, got)
 					}
 				},
 				testutils.WithFieldNotEqual[model.User]("UpdatedAt"),
@@ -188,9 +188,9 @@ func TestUserRepository(t *testing.T) {
 			}
 
 			// sets up delay for fooling updated_at field in db.
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Second * 1)
 
-			updatedUser, err := repo.Update(createdUser.ID, WithToken("updated-token"))
+			updatedUser, err := repo.Update(createdUser.ID, WithToken("updated-token-3"))
 			if err != nil {
 				t.Fatalf("Update User failed: %v", err)
 			}
@@ -201,7 +201,7 @@ func TestUserRepository(t *testing.T) {
 					if shouldBeEqual {
 						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
 					} else {
-						t.Fatalf("Field %q should have changed, but it did not: got %v, expected %v", field, got, expected)
+						t.Fatalf("Field %q should have changed, but it did not: got %v", field, got)
 					}
 				},
 				testutils.WithFieldNotEqual[model.User]("UpdatedAt"),
