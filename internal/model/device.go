@@ -7,5 +7,4 @@ type Device struct {
 	Name        string
 	Description string
 	Token       string
-	// TODO - add last known location or all locations?
 }

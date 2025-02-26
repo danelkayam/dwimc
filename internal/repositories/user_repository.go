@@ -10,25 +10,24 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type UpdateField func(updateFields *map[string]interface{})
+type userUpdateField struct{}
 
-func WithPassword(password string) UpdateField {
-	return func(updateFields *map[string]interface{}) {
-		(*updateFields)["password"] = password
-	}
+func (userUpdateField) WithPassword(password string) UpdateField {
+	return WithField("password", password)
 }
 
-func WithToken(token string) UpdateField {
-	return func(updateFields *map[string]interface{}) {
-		(*updateFields)["token"] = token
-	}
+func (userUpdateField) WithToken(token string) UpdateField {
+	return WithField("token", token)
 }
+
+var UserUpdate userUpdateField
+
 
 type UserRepository interface {
 	GetBy(id model.ID) (*model.User, error)
 	GetByEmail(email string) (*model.User, error)
 	Create(email string, password string, token string) (*model.User, error)
-	Update(id model.ID, fields... UpdateField) (*model.User, error)
+	Update(id model.ID, fields ...UpdateField) (*model.User, error)
 	Delete(id model.ID) error
 }
 
@@ -86,8 +85,8 @@ func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.U
 
 	query := "UPDATE users SET "
 	updates := map[string]interface{}{}
-    setClauses := []string{}
-    args := []interface{}{}
+	setClauses := []string{}
+	args := []interface{}{}
 
 	for _, field := range fields {
 		field(&updates)
@@ -101,7 +100,7 @@ func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.U
 	setClauses = append(setClauses, "updated_at = CURRENT_TIMESTAMP")
 
 	query += strings.Join(setClauses, ", ") + " WHERE id = ? RETURNING *"
-    args = append(args, id)
+	args = append(args, id)
 
 	updatedUser := model.User{}
 

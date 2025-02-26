@@ -18,7 +18,7 @@ type testUser struct {
 }
 
 func TestUserRepository(t *testing.T) {
-	testUsers := generateTestUser()
+	testUsers := generateTestUsers()
 
 	t.Run("create user", func(t *testing.T) {
 		db := setupTestDB(t)
@@ -99,6 +99,8 @@ func TestUserRepository(t *testing.T) {
 		db := setupTestDB(t)
 		repo := NewSQLUserRepository(db)
 
+		const UPDATE_SLEEP_DURATION = 1 * time.Second
+
 		t.Run("all fields", func(t *testing.T) {
 			t.Parallel()
 
@@ -108,10 +110,12 @@ func TestUserRepository(t *testing.T) {
 			}
 
 			// sets up delay for fooling updated_at field in db.
-			time.Sleep(time.Second * 1)
+			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			updatedUser, err := repo.Update(createdUser.ID,
-				WithPassword("updated-password-0"), WithToken("updated-token-0"))
+				UserUpdate.WithPassword("updated-password-0"),
+				UserUpdate.WithToken("updated-token-0"),
+			)
 			if err != nil {
 				t.Fatalf("Update User failed: %v", err)
 			}
@@ -140,7 +144,7 @@ func TestUserRepository(t *testing.T) {
 			}
 
 			// sets up delay for fooling updated_at field in db.
-			time.Sleep(time.Second * 1)
+			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			_, err = repo.Update(createdUser.ID)
 			if err == nil {
@@ -157,9 +161,10 @@ func TestUserRepository(t *testing.T) {
 			}
 
 			// sets up delay for fooling updated_at field in db.
-			time.Sleep(time.Second * 1)
+			time.Sleep(UPDATE_SLEEP_DURATION)
 
-			updatedUser, err := repo.Update(createdUser.ID, WithPassword("updated-password-2"))
+			updatedUser, err := repo.Update(createdUser.ID,
+				UserUpdate.WithPassword("updated-password-2"))
 			if err != nil {
 				t.Fatalf("Update User failed: %v", err)
 			}
@@ -178,7 +183,6 @@ func TestUserRepository(t *testing.T) {
 			)
 		})
 
-
 		t.Run("update token", func(t *testing.T) {
 			t.Parallel()
 
@@ -188,9 +192,10 @@ func TestUserRepository(t *testing.T) {
 			}
 
 			// sets up delay for fooling updated_at field in db.
-			time.Sleep(time.Second * 1)
+			time.Sleep(UPDATE_SLEEP_DURATION)
 
-			updatedUser, err := repo.Update(createdUser.ID, WithToken("updated-token-3"))
+			updatedUser, err := repo.Update(createdUser.ID,
+				UserUpdate.WithToken("updated-token-3"))
 			if err != nil {
 				t.Fatalf("Update User failed: %v", err)
 			}
@@ -239,7 +244,7 @@ func TestUserRepository(t *testing.T) {
 	})
 }
 
-func generateTestUser() []testUser {
+func generateTestUsers() []testUser {
 	const size = 10
 	testUsers := make([]testUser, size)
 
