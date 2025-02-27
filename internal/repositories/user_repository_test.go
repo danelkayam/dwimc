@@ -72,8 +72,9 @@ func TestUserRepository(t *testing.T) {
 		db := setupTestDB(t)
 		repo := NewSQLUserRepository(db)
 
-		t.Run("By ID", func(t *testing.T) {
+		t.Run("by ID", func(t *testing.T) {
 			t.Parallel()
+
 			user, err := repo.Create(testUsers[0].email, testUsers[0].password, testUsers[0].token)
 			if err != nil {
 				t.Fatalf("Create User failed: %v", err)
@@ -83,8 +84,22 @@ func TestUserRepository(t *testing.T) {
 			checkGetUser(t, retrieved, user, err)
 		})
 
-		t.Run("By Email", func(t *testing.T) {
+		t.Run("by ID - not found", func(t *testing.T) {
 			t.Parallel()
+
+			retrieved, err := repo.GetBy(model.ID(123456789))
+			if err != nil {
+				t.Fatalf("Get User failed: %v", err)
+			}
+
+			if retrieved != nil {
+				t.Fatalf("Got: %v, expected: nil", retrieved)
+			}
+		})
+
+		t.Run("by email", func(t *testing.T) {
+			t.Parallel()
+
 			user, err := repo.Create(testUsers[1].email, testUsers[1].password, testUsers[1].token)
 			if err != nil {
 				t.Fatalf("Create User failed: %v", err)
@@ -92,6 +107,19 @@ func TestUserRepository(t *testing.T) {
 
 			retrieved, err := repo.GetByEmail(user.Email)
 			checkGetUser(t, retrieved, user, err)
+		})
+
+		t.Run("by email - not found", func(t *testing.T) {
+			t.Parallel()
+
+			retrieved, err := repo.GetByEmail("not-existing-user@dwimc.awesome")
+			if err != nil {
+				t.Fatalf("Get User failed: %v", err)
+			}
+
+			if retrieved != nil {
+				t.Fatalf("Got: %v, expected: nil", retrieved)
+			}
 		})
 	})
 
@@ -120,7 +148,7 @@ func TestUserRepository(t *testing.T) {
 				t.Fatalf("Update User failed: %v", err)
 			}
 
-			testutils.CheckUpdatedStruct(createdUser, updatedUser,
+			testutils.AssertEqualItems(createdUser, updatedUser,
 				func(field string, shouldBeEqual bool, got, expected interface{}) {
 					t.Helper()
 					if shouldBeEqual {
@@ -169,7 +197,7 @@ func TestUserRepository(t *testing.T) {
 				t.Fatalf("Update User failed: %v", err)
 			}
 
-			testutils.CheckUpdatedStruct(createdUser, updatedUser,
+			testutils.AssertEqualItems(createdUser, updatedUser,
 				func(field string, shouldBeEqual bool, got, expected interface{}) {
 					t.Helper()
 					if shouldBeEqual {
@@ -200,7 +228,7 @@ func TestUserRepository(t *testing.T) {
 				t.Fatalf("Update User failed: %v", err)
 			}
 
-			testutils.CheckUpdatedStruct(createdUser, updatedUser,
+			testutils.AssertEqualItems(createdUser, updatedUser,
 				func(field string, shouldBeEqual bool, got, expected interface{}) {
 					t.Helper()
 					if shouldBeEqual {
@@ -217,6 +245,7 @@ func TestUserRepository(t *testing.T) {
 
 	t.Run("delete user", func(t *testing.T) {
 		t.Parallel()
+		
 		db := setupTestDB(t)
 		repo := NewSQLUserRepository(db)
 

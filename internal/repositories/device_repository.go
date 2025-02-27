@@ -9,15 +9,11 @@ import (
 type deviceUpdateField struct{}
 
 func (deviceUpdateField) WithSerial(serial string) UpdateField {
-return WithField("serial", serial)
+	return WithField("serial", serial)
 }
 
 func (deviceUpdateField) WithName(name string) UpdateField {
 	return WithField("name", name)
-}
-
-func (deviceUpdateField) WithDescription(description string) UpdateField {
-	return WithField("description", description)
 }
 
 func (deviceUpdateField) WithToken(token string) UpdateField {
@@ -27,10 +23,9 @@ func (deviceUpdateField) WithToken(token string) UpdateField {
 var DeviceUpdate deviceUpdateField
 
 type DeviceRepository interface {
-	Get(id model.ID) *model.Device
-	GetAllByUserID(userID model.ID) []model.Device
-	Create(userId model.ID, serial string, name string,
-		description string, token string) (*model.Device, error)
+	Get(id model.ID) (*model.Device, error)
+	GetAllByUserID(userID model.ID) ([]model.Device, error)
+	Create(userId model.ID, serial string, name string, token string) (*model.Device, error)
 	Update(id model.ID, fields ...UpdateField) (*model.Device, error)
 	Delete(id model.ID) error
 }
@@ -43,17 +38,17 @@ func NewSQLDeviceRepository(db *sqlx.DB) DeviceRepository {
 	return &SQLDeviceRepository{db: db}
 }
 
-func (r *SQLDeviceRepository) Get(id model.ID) *model.Device {
+func (r *SQLDeviceRepository) Get(id model.ID) (*model.Device, error) {
 	// TODO - implement this
-	return nil
+	return nil, nil
 }
 
-func (r *SQLDeviceRepository) GetAllByUserID(userID model.ID) []model.Device {
+func (r *SQLDeviceRepository) GetAllByUserID(userID model.ID) ([]model.Device, error) {
 	// TODO - implement this
-	return nil
+	return nil, nil
 }
 
-func (r *SQLDeviceRepository) Create(userId model.ID, serial string, name string, description string, token string) (*model.Device, error) {
+func (r *SQLDeviceRepository) Create(userId model.ID, serial string, name string, token string) (*model.Device, error) {
 	// TODO - implement this
 	return nil, nil
 }

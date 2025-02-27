@@ -14,7 +14,7 @@ func WithFieldNotEqual[T any](fieldName string) CheckField[T] {
 	}
 }
 
-func CheckUpdatedStruct[T any](expected *T, updated *T, onFailedCheck OnFailedCheck, opts ...CheckField[T]) {
+func AssertEqualItems[T any](expected *T, got *T, onFailedCheck OnFailedCheck, opts ...CheckField[T]) {
 	checkFields := map[string]bool{}
 
 	expectedType := reflect.TypeOf(expected).Elem()
@@ -26,7 +26,7 @@ func CheckUpdatedStruct[T any](expected *T, updated *T, onFailedCheck OnFailedCh
 	}
 
 	expectedValue := reflect.ValueOf(expected).Elem()
-	gotValue := reflect.ValueOf(updated).Elem()
+	gotValue := reflect.ValueOf(got).Elem()
 
 	compareFields(expectedValue, gotValue, &checkFields, &onFailedCheck)
 }

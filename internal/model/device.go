@@ -5,6 +5,5 @@ type Device struct {
 	UserID      ID
 	Serial      string
 	Name        string
-	Description string
 	Token       string
 }
