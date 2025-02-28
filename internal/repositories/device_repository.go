@@ -28,6 +28,7 @@ type DeviceRepository interface {
 	Create(userId model.ID, serial string, name string, token string) (*model.Device, error)
 	Update(id model.ID, fields ...UpdateField) (*model.Device, error)
 	Delete(id model.ID) error
+	DeleteAllByUserID(userID model.ID) (int, error)
 }
 
 type SQLDeviceRepository struct {
@@ -61,4 +62,9 @@ func (r *SQLDeviceRepository) Update(id model.ID, fields ...UpdateField) (*model
 func (r *SQLDeviceRepository) Delete(id model.ID) error {
 	// TODO - implement this
 	return nil
+}
+
+func (r *SQLDeviceRepository) DeleteAllByUserID(id model.ID) (int, error) {
+	// TODO - implement this
+	return 0, nil
 }
