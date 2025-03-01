@@ -526,13 +526,13 @@ func generateTestDevices(opts ...testDeviceOption) []testDevice {
 }
 
 func assertCreatedDevice(t *testing.T, expected *testDevice, actual *model.Device, err error) {
-	assert.NoErrorf(t, err, "Create User failed: %v", err)
+	assert.NoErrorf(t, err, "Create Device failed: %v", err)
 	assert.NotNilf(t, actual, "Create Device failed - device is nil")
 
 	assert.NotEqualf(t, 0, actual.ID, "Invalid ID 0")
 
-	assert.Equalf(t, model.ID(expected.userID), actual.UserID, "ID mismatch (user ID: %d)", expected.userID)
-	assert.Equalf(t, expected.serial, actual.Serial, "Serial mismatch (user ID: %d)", expected.userID)
-	assert.Equalf(t, expected.name, actual.Name, "Name mismatch (user ID: %d)", expected.userID)
-	assert.Equalf(t, expected.token, actual.Token.String, "Token mismatch (user ID: %d)", expected.userID)
+	assert.Equalf(t, model.ID(expected.userID), actual.UserID, "ID mismatch (device ID: %d)", expected.ID)
+	assert.Equalf(t, expected.serial, actual.Serial, "Serial mismatch (device ID: %d)", expected.ID)
+	assert.Equalf(t, expected.name, actual.Name, "Name mismatch (device ID: %d)", expected.ID)
+	assert.Equalf(t, expected.token, actual.Token.String, "Token mismatch (device ID: %d)", expected.ID)
 }
