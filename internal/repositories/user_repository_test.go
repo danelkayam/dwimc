@@ -2,12 +2,13 @@ package repositories
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
 	"dwimc/internal/model"
 	testutils "dwimc/internal/test_utils"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type testUser struct {
@@ -30,14 +31,15 @@ func TestUserRepository(t *testing.T) {
 				password: "valid-user-password",
 				token:    "valid-user-token",
 			}
+
 			user, err := repo.Create(testUser.email, testUser.password, testUser.token)
-			checkCreateUser(t, user, testUser, err)
+			assertCreateUser(t, testUser, user, err)
 		})
 
 		t.Run("multiple valid users", func(t *testing.T) {
 			for _, testUser := range testUsers {
 				user, err := repo.Create(testUser.email, testUser.password, testUser.token)
-				checkCreateUser(t, user, &testUser, err)
+				assertCreateUser(t, &testUser, user, err)
 			}
 		})
 
@@ -47,11 +49,11 @@ func TestUserRepository(t *testing.T) {
 				password: "duplicate-email-password",
 				token:    "duplicate-email-token",
 			}
+
 			repo.Create(testUser.email, testUser.password, testUser.token)
 			_, err := repo.Create(testUser.email, "different-password-0", "different-token-0")
-			if err == nil {
-				t.Fatalf("Got: nil, expected: error for duplicate email")
-			}
+
+			assert.Errorf(t, err, "Expected error for duplicate email")
 		})
 
 		t.Run("duplicate token", func(t *testing.T) {
@@ -60,11 +62,11 @@ func TestUserRepository(t *testing.T) {
 				password: "duplicate-token-password",
 				token:    "duplicate-token-token",
 			}
+
 			repo.Create(testUser.email, testUser.password, testUser.token)
 			_, err := repo.Create("duplicate-token-1@dwimc.awesome", "different-password-1", testUser.token)
-			if err == nil {
-				t.Fatalf("Got: nil, expected: error for duplicate token")
-			}
+
+			assert.Errorf(t, err, "Expected error for duplicate email")
 		})
 	})
 
@@ -76,50 +78,38 @@ func TestUserRepository(t *testing.T) {
 			t.Parallel()
 
 			user, err := repo.Create(testUsers[0].email, testUsers[0].password, testUsers[0].token)
-			if err != nil {
-				t.Fatalf("Create User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
 
 			retrieved, err := repo.GetBy(user.ID)
-			checkGetUser(t, retrieved, user, err)
+			assertGetUser(t, user, retrieved, err)
 		})
 
 		t.Run("by ID - not found", func(t *testing.T) {
 			t.Parallel()
 
 			retrieved, err := repo.GetBy(model.ID(123456789))
-			if err != nil {
-				t.Fatalf("Get User failed: %v", err)
-			}
 
-			if retrieved != nil {
-				t.Fatalf("Got: %v, expected: nil", retrieved)
-			}
+			assert.NoErrorf(t, err, "Get User failed: %v", err)
+			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
 		})
 
 		t.Run("by email", func(t *testing.T) {
 			t.Parallel()
 
 			user, err := repo.Create(testUsers[1].email, testUsers[1].password, testUsers[1].token)
-			if err != nil {
-				t.Fatalf("Create User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
 
 			retrieved, err := repo.GetByEmail(user.Email)
-			checkGetUser(t, retrieved, user, err)
+			assertGetUser(t, user, retrieved, err)
 		})
 
 		t.Run("by email - not found", func(t *testing.T) {
 			t.Parallel()
 
 			retrieved, err := repo.GetByEmail("not-existing-user@dwimc.awesome")
-			if err != nil {
-				t.Fatalf("Get User failed: %v", err)
-			}
 
-			if retrieved != nil {
-				t.Fatalf("Got: %v, expected: nil", retrieved)
-			}
+			assert.NoErrorf(t, err, "Get User failed: %v", err)
+			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
 		})
 	})
 
@@ -133,9 +123,7 @@ func TestUserRepository(t *testing.T) {
 			t.Parallel()
 
 			createdUser, err := repo.Create(testUsers[0].email, testUsers[0].password, testUsers[0].token)
-			if err != nil {
-				t.Fatalf("Create User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
 
 			// sets up delay for fooling updated_at field in db.
 			time.Sleep(UPDATE_SLEEP_DURATION)
@@ -144,9 +132,7 @@ func TestUserRepository(t *testing.T) {
 				UserUpdate.WithPassword("updated-password-0"),
 				UserUpdate.WithToken("updated-token-0"),
 			)
-			if err != nil {
-				t.Fatalf("Update User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
 			testutils.AssertEqualItems(createdUser, updatedUser,
 				func(field string, shouldBeEqual bool, got, expected interface{}) {
@@ -167,35 +153,27 @@ func TestUserRepository(t *testing.T) {
 			t.Parallel()
 
 			createdUser, err := repo.Create(testUsers[1].email, testUsers[1].password, testUsers[1].token)
-			if err != nil {
-				t.Fatalf("Create User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
 
 			// sets up delay for fooling updated_at field in db.
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			_, err = repo.Update(createdUser.ID)
-			if err == nil {
-				t.Fatalf("Got: nil, expected: error for missing fields")
-			}
+			assert.Errorf(t, err, "Expected error for missing fields: %v", err)
 		})
 
 		t.Run("update password", func(t *testing.T) {
 			t.Parallel()
 
 			createdUser, err := repo.Create(testUsers[2].email, testUsers[2].password, testUsers[2].token)
-			if err != nil {
-				t.Fatalf("Create User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
 
 			// sets up delay for fooling updated_at field in db.
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			updatedUser, err := repo.Update(createdUser.ID,
 				UserUpdate.WithPassword("updated-password-2"))
-			if err != nil {
-				t.Fatalf("Update User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
 			testutils.AssertEqualItems(createdUser, updatedUser,
 				func(field string, shouldBeEqual bool, got, expected interface{}) {
@@ -215,18 +193,14 @@ func TestUserRepository(t *testing.T) {
 			t.Parallel()
 
 			createdUser, err := repo.Create(testUsers[3].email, testUsers[3].password, testUsers[3].token)
-			if err != nil {
-				t.Fatalf("Create User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
 
 			// sets up delay for fooling updated_at field in db.
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			updatedUser, err := repo.Update(createdUser.ID,
 				UserUpdate.WithToken("updated-token-3"))
-			if err != nil {
-				t.Fatalf("Update User failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
 			testutils.AssertEqualItems(createdUser, updatedUser,
 				func(field string, shouldBeEqual bool, got, expected interface{}) {
@@ -245,31 +219,23 @@ func TestUserRepository(t *testing.T) {
 
 	t.Run("delete user", func(t *testing.T) {
 		t.Parallel()
-		
+
 		db := setupTestDB(t)
 		repo := NewSQLUserRepository(db)
 
 		user, err := repo.Create(testUsers[0].email, testUsers[0].password, testUsers[0].token)
-		if err != nil {
-			t.Fatalf("Create User failed: %v", err)
-		}
+		assert.NoErrorf(t, err, "Create User failed: %v", err)
 
 		retrieved, err := repo.GetBy(user.ID)
-		checkGetUser(t, retrieved, user, err)
+		assertGetUser(t, user, retrieved, err)
 
 		err = repo.Delete(user.ID)
-		if err != nil {
-			t.Fatalf("Delete User failed: %v", err)
-		}
+		assert.NoErrorf(t, err, "Delete User failed: %v", err)
 
 		retrieved, err = repo.GetBy(user.ID)
-		if err != nil {
-			t.Fatalf("Get User failed: %v", err)
-		}
+		assert.NoErrorf(t, err, "Get User failed: %v", err)
 
-		if retrieved != nil {
-			t.Fatalf("Got %+v, expected: nil", retrieved)
-		}
+		assert.Nilf(t, retrieved, "Got %+v, expected: nil", retrieved)
 	})
 }
 
@@ -289,37 +255,16 @@ func generateTestUsers() []testUser {
 	return testUsers
 }
 
-func checkCreateUser(t *testing.T, createdUser *model.User, testUser *testUser, err error) {
-	if err != nil {
-		t.Fatalf("Create User failed: %v", err)
-	}
+func assertCreateUser(t *testing.T, expected *testUser, actual *model.User, err error) {
+	assert.NoErrorf(t, err, "Create User failed: %v", err)
 
-	if createdUser.ID == 0 {
-		t.Fatalf("Got 0, expected: a valid ID")
-	}
-
-	if createdUser.Email != testUser.email {
-		t.Fatalf("Got: %s, expected: %s (user ID: %d)",
-			createdUser.Email, testUser.email, testUser.id)
-	}
-
-	if createdUser.Password != testUser.password {
-		t.Fatalf("Got: %s, expected: %s (user ID: %d)",
-			createdUser.Password, testUser.password, testUser.id)
-	}
-
-	if createdUser.Token.String != testUser.token {
-		t.Fatalf("Got: %s, expected: %s (user ID: %d)",
-			createdUser.Token.String, testUser.token, testUser.id)
-	}
+	assert.NotEqualf(t, 0, actual.ID, "Invalid ID 0")
+	assert.Equalf(t, expected.email, actual.Email, "Email mismatch (user ID: %d)", expected.id)
+	assert.Equalf(t, expected.password, actual.Password, "Password mismatch (user ID: %d)", expected.id)
+	assert.Equalf(t, expected.token, actual.Token.String, "Token mismatch (user ID: %d)", expected.id)
 }
 
-func checkGetUser(t *testing.T, retrievedUser *model.User, user *model.User, err error) {
-	if err != nil {
-		t.Fatalf("Failed to get user: %v", err)
-	}
-
-	if !reflect.DeepEqual(retrievedUser, user) {
-		t.Fatalf("Got %+v, expected: %+v (user ID: %d)", retrievedUser, user, user.ID)
-	}
+func assertGetUser(t *testing.T, actual *model.User, expected *model.User, err error) {
+	assert.NoErrorf(t, err, "Get User failed: %v", err)
+	assert.Equalf(t, expected, actual, "Got %+v, expected: %+v (user ID: %d)", actual, expected, expected.ID)
 }

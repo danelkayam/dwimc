@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 type testDevice struct {
@@ -34,7 +35,7 @@ func TestDeviceRepository(t *testing.T) {
 
 			device, err := repo.Create(model.ID(testDevice.userID), testDevice.serial,
 				testDevice.name, testDevice.token)
-			checkCreatedDevice(t, device, testDevice, err)
+			assertCreatedDevice(t, testDevice, device, err)
 		})
 
 		t.Run("multiple", func(t *testing.T) {
@@ -42,7 +43,7 @@ func TestDeviceRepository(t *testing.T) {
 			for _, testDevice := range testDevices {
 				device, err := repo.Create(model.ID(testDevice.userID), testDevice.serial,
 					testDevice.name, testDevice.token)
-				checkCreatedDevice(t, device, &testDevice, err)
+				assertCreatedDevice(t, &testDevice, device, err)
 			}
 		})
 
@@ -65,14 +66,11 @@ func TestDeviceRepository(t *testing.T) {
 
 				device, err := repo.Create(model.ID(device1.userID), device1.serial,
 					device1.name, device1.token)
-				checkCreatedDevice(t, device, device1, err)
+				assertCreatedDevice(t, device1, device, err)
 
 				_, err = repo.Create(model.ID(device2.userID), device2.serial,
 					device2.name, device2.token)
-
-				if err == nil {
-					t.Fatalf("Got: nil, expected: error for duplicate fields")
-				}
+				assert.Errorf(t, err, "Expected error for duplicate serial")
 			})
 
 			t.Run("serial - multiple users", func(t *testing.T) {
@@ -95,11 +93,11 @@ func TestDeviceRepository(t *testing.T) {
 
 				device, err := repo.Create(model.ID(device1.userID), device1.serial,
 					device1.name, device1.token)
-				checkCreatedDevice(t, device, device1, err)
+				assertCreatedDevice(t, device1, device, err)
 
 				device, err = repo.Create(model.ID(device2.userID), device2.serial,
 					device2.name, device2.token)
-				checkCreatedDevice(t, device, device2, err)
+				assertCreatedDevice(t, device2, device, err)
 			})
 
 			t.Run("token - same user", func(t *testing.T) {
@@ -122,14 +120,12 @@ func TestDeviceRepository(t *testing.T) {
 
 				device, err := repo.Create(model.ID(device1.userID), device1.serial,
 					device1.name, device1.token)
-				checkCreatedDevice(t, device, device1, err)
+				assertCreatedDevice(t, device1, device, err)
 
 				_, err = repo.Create(model.ID(device2.userID), device2.serial,
 					device2.name, device2.token)
 
-				if err == nil {
-					t.Fatalf("Got: nil, expected: error for duplicate token")
-				}
+				assert.Errorf(t, err, "Expected error for duplicate token")
 			})
 
 			t.Run("token - multiple users", func(t *testing.T) {
@@ -152,14 +148,12 @@ func TestDeviceRepository(t *testing.T) {
 
 				device, err := repo.Create(model.ID(device1.userID), device1.serial,
 					device1.name, device1.token)
-				checkCreatedDevice(t, device, device1, err)
+				assertCreatedDevice(t, device1, device, err)
 
 				_, err = repo.Create(model.ID(device2.userID), device2.serial,
 					device2.name, device2.token)
 
-				if err == nil {
-					t.Fatalf("Got: nil, expected: error for duplicate token")
-				}
+				assert.Errorf(t, err, "Expected error for duplicate token")
 			})
 		})
 	})
@@ -177,17 +171,12 @@ func TestDeviceRepository(t *testing.T) {
 
 			device, err := repo.Create(model.ID(testDevice.userID), testDevice.serial,
 				testDevice.name, testDevice.token)
-			checkCreatedDevice(t, device, &testDevice, err)
+			assertCreatedDevice(t, &testDevice, device, err)
 
 			retrieved, err := repo.Get(device.ID)
-			if err != nil {
-				t.Fatalf("Get Device failed: %v", err)
-			}
 
-			if retrieved == nil {
-				t.Fatalf("Get Device failed - device is nil")
-				return
-			}
+			assert.NoErrorf(t, err, "Get Device failed: %v", err)
+			assert.NotNilf(t, retrieved, "Get Device failed - device is nil")
 
 			testutils.AssertEqualItems(device, retrieved,
 				func(field string, shouldBeEqual bool, got, expected interface{}) {
@@ -204,13 +193,9 @@ func TestDeviceRepository(t *testing.T) {
 			t.Parallel()
 
 			retrieved, err := repo.Get(model.ID(100000002))
-			if err != nil {
-				t.Fatalf("Get Device failed: %v", err)
-			}
 
-			if retrieved != nil {
-				t.Fatalf("Got: %v, expected: nil", retrieved)
-			}
+			assert.NoErrorf(t, err, "Get Device failed: %v", err)
+			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
 		})
 
 		t.Run("by serial", func(t *testing.T) {
@@ -228,26 +213,20 @@ func TestDeviceRepository(t *testing.T) {
 
 			for _, device := range devices {
 				_, err := repo.Create(model.ID(device.userID), device.serial, device.name, device.token)
-				if err != nil {
-					t.Fatalf("Create Device failed: %v device: %+v", err, device)
-				}
+				assert.NoErrorf(t, err, "Create Device failed: %v device: %+v", err, device)
 			}
 
 			device, err := repo.GetBySerial(model.ID(40), serial)
-			checkCreatedDevice(t, device, &devices[4], err)
+			assertCreatedDevice(t, &devices[4], device, err)
 		})
 
 		t.Run("by serial - none", func(t *testing.T) {
 			t.Parallel()
 
 			retrieved, err := repo.GetBySerial(model.ID(100000002), uuid.NewString())
-			if err != nil {
-				t.Fatalf("Get Device failed: %v", err)
-			}
 
-			if retrieved != nil {
-				t.Fatalf("Got: %v, expected: nil", retrieved)
-			}
+			assert.NoErrorf(t, err, "Get Device failed: %v", err)
+			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
 		})
 
 		t.Run("all by user id", func(t *testing.T) {
@@ -267,19 +246,13 @@ func TestDeviceRepository(t *testing.T) {
 
 			for _, device := range devices {
 				_, err := repo.Create(model.ID(device.userID), device.serial, device.name, device.token)
-				if err != nil {
-					t.Fatalf("Create Device failed: %v device: %+v", err, device)
-				}
+				assert.NoErrorf(t, err, "Create Device failed: %v device: %+v", err, device)
 			}
 
 			retrieved, err := repo.GetAllByUserID(model.ID(10))
-			if err != nil {
-				t.Fatalf("Get Devices failed: %v", err)
-			}
 
-			if len(retrieved) != 10 {
-				t.Fatalf("Got: %d, expected: %d", len(retrieved), 10)
-			}
+			assert.NoErrorf(t, err, "Get Devices failed: %v", err)
+			assert.Equal(t, 10, len(retrieved), "Expected getting %d devices", 10)
 		})
 
 		t.Run("all by user id - none", func(t *testing.T) {
@@ -293,19 +266,13 @@ func TestDeviceRepository(t *testing.T) {
 
 			for _, device := range devices {
 				_, err := repo.Create(model.ID(device.userID), device.serial, device.name, device.token)
-				if err != nil {
-					t.Fatalf("Create Device failed: %v", err)
-				}
+				assert.NoErrorf(t, err, "Create Device failed: %v device: %+v", err, device)
 			}
 
 			retrieved, err := repo.GetAllByUserID(model.ID(99999))
-			if err != nil {
-				t.Fatalf("Get Devices failed: %v", err)
-			}
 
-			if len(retrieved) != 0 {
-				t.Fatalf("Got: %d, expected: %d", len(retrieved), 0)
-			}
+			assert.NoErrorf(t, err, "Get Devices failed: %v", err)
+			assert.Equal(t, 0, len(retrieved), "Expected getting %d devices", 0)
 		})
 	})
 
@@ -325,13 +292,8 @@ func TestDeviceRepository(t *testing.T) {
 			device, err := repo.Create(model.ID(testDevice.userID), testDevice.serial,
 				testDevice.name, testDevice.token)
 
-			if err != nil {
-				t.Fatalf("Create Device failed: %v", err)
-			}
-
-			if device == nil {
-				t.Fatalf("Create Device failed - device is nil")
-			}
+			assert.NoErrorf(t, err, "Create Device failed: %v", err)
+			assert.NotNil(t, device, "Update Device failed - device is nil")
 
 			// sets up delay for fooling updated_at field in db.
 			time.Sleep(UPDATE_SLEEP_DURATION)
@@ -346,27 +308,12 @@ func TestDeviceRepository(t *testing.T) {
 				DeviceUpdate.WithToken(newToken),
 			)
 
-			if err != nil {
-				t.Fatalf("Update Device failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Update Device failed: %v", err)
+			assert.NotNil(t, updated, "Update Device failed - device is nil")
 
-			if updated == nil {
-				t.Fatalf("Update Device failed - device is nil")
-			}
-
-			// TODO - fix this - should be simpler
-
-			if updated.Serial != newSerial {
-				t.Fatalf("Update Device failed - token not updated")
-			}
-
-			if updated.Name != newName {
-				t.Fatalf("Update Device failed - name not updated")
-			}
-
-			if updated.Token.String != newToken {
-				t.Fatalf("Update Device failed - Token not updated")
-			}
+			assert.Equal(t, newSerial, updated.Serial, "Update Device failed - serial not updated")
+			assert.Equal(t, newName, updated.Name, "Update Device failed - name not updated")
+			assert.Equal(t, newToken, updated.Token.String, "Update Device failed - token not updated")
 
 			testutils.AssertEqualItems(updated, device,
 				func(field string, shouldBeEqual bool, got, expected interface{}) {
@@ -392,21 +339,14 @@ func TestDeviceRepository(t *testing.T) {
 			device, err := repo.Create(model.ID(testDevice.userID),
 				testDevice.serial, testDevice.name, testDevice.token)
 
-			if err != nil {
-				t.Fatalf("Create Device failed: %v", err)
-			}
-
-			if device == nil {
-				t.Fatalf("Create Device failed - device is nil")
-			}
+			assert.NoErrorf(t, err, "Create Device failed: %v", err)
+			assert.NotNil(t, device, "Create Device failed - device is nil")
 
 			// sets up delay for fooling updated_at field in db.
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			_, err = repo.Update(device.ID)
-			if err == nil {
-				t.Fatalf("Got: nil, expected: error for missing fields")
-			}
+			assert.Errorf(t, err, "Expected error for missing fields")
 		})
 	})
 
@@ -427,29 +367,17 @@ func TestDeviceRepository(t *testing.T) {
 			device, err := repo.Create(model.ID(testDevice.userID), testDevice.serial,
 				testDevice.name, testDevice.token)
 
-			if err != nil {
-				t.Fatalf("Create Device failed: %v", err)
-			}
-
-			if device == nil {
-				t.Fatalf("Create Device failed - device is nil")
-			}
+			assert.NoErrorf(t, err, "Create Device failed: %v", err)
+			assert.NotNil(t, device, "Update Device failed - device is nil")
 
 			err = repo.Delete(device.ID)
 
-			if err != nil {
-				t.Fatalf("Delete Device failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Delete Device failed: %v", err)
 
 			retrieved, err := repo.Get(device.ID)
 
-			if err != nil {
-				t.Fatalf("Get Device failed: %v", err)
-			}
-
-			if retrieved != nil {
-				t.Fatalf("Got %+v, expected: nil", retrieved)
-			}
+			assert.NoErrorf(t, err, "Get Device failed: %v", err)
+			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
 		})
 
 		t.Run("by id - none", func(t *testing.T) {
@@ -462,26 +390,17 @@ func TestDeviceRepository(t *testing.T) {
 
 			for _, device := range devices {
 				_, err := repo.Create(model.ID(device.userID), device.serial, device.name, device.token)
-				if err != nil {
-					t.Fatalf("Create Device failed: %v", err)
-				}
+				assert.NoErrorf(t, err, "Create Device failed: %v device: %+v", err, device)
 			}
 
 			err := repo.Delete(model.ID(99999999))
 
-			if err != nil {
-				t.Fatalf("Delete Device failed: %v", err)
-			}
+			assert.NoErrorf(t, err, "Delete Device failed: %v", err)
 
 			retrieved, err := repo.GetAllByUserID(model.ID(10))
 
-			if err != nil {
-				t.Fatalf("Get Devices failed: %v", err)
-			}
-
-			if len(retrieved) != 10 {
-				t.Fatalf("Got %d, expected: %d", len(retrieved), 10)
-			}
+			assert.NoErrorf(t, err, "Get Devices failed: %v", err)
+			assert.Equal(t, 10, len(retrieved), "Expected getting %d devices", 10)
 		})
 
 		t.Run("all by userID", func(t *testing.T) {
@@ -500,30 +419,18 @@ func TestDeviceRepository(t *testing.T) {
 
 			for _, device := range devices {
 				_, err := repo.Create(model.ID(device.userID), device.serial, device.name, device.token)
-				if err != nil {
-					t.Fatalf("Create Device failed: %v", err)
-				}
+				assert.NoErrorf(t, err, "Create Device failed: %v device: %+v", err, device)
 			}
 
 			total, err := repo.DeleteAllByUserID(model.ID(20))
 
-			if err != nil {
-				t.Fatalf("Delete Devices failed: %v", err)
-			}
-
-			if total != 10 {
-				t.Fatalf("Got %+v, expected: %d", total, 10)
-			}
+			assert.NoErrorf(t, err, "Delete Devices failed: %v", err)
+			assert.Equal(t, 10, int(total), "Expected getting %d devices", 10)
 
 			retrieved, err := repo.GetAllByUserID(model.ID(20))
 
-			if err != nil {
-				t.Fatalf("Get Devices failed: %v", err)
-			}
-
-			if len(retrieved) != 0 {
-				t.Fatalf("Got %d, expected: %d", len(retrieved), 0)
-			}
+			assert.NoErrorf(t, err, "Get Devices failed: %v", err)
+			assert.Equal(t, 0, len(retrieved), "Expected getting %d devices", 0)
 		})
 
 		t.Run("all by userID - none", func(t *testing.T) {
@@ -537,30 +444,18 @@ func TestDeviceRepository(t *testing.T) {
 
 			for _, device := range devices {
 				_, err := repo.Create(model.ID(device.userID), device.serial, device.name, device.token)
-				if err != nil {
-					t.Fatalf("Create Device failed: %v", err)
-				}
+				assert.NoErrorf(t, err, "Create Device failed: %v device: %+v", err, device)
 			}
 
 			total, err := repo.DeleteAllByUserID(model.ID(999999))
 
-			if err != nil {
-				t.Fatalf("Delete Devices failed: %v", err)
-			}
-
-			if total != 0 {
-				t.Fatalf("Got %+v, expected: %d", total, 0)
-			}
+			assert.NoErrorf(t, err, "Delete Devices failed: %v", err)
+			assert.Equal(t, 0, int(total), "Expected getting %d devices", 0)
 
 			retrieved, err := repo.GetAllByUserID(model.ID(40))
 
-			if err != nil {
-				t.Fatalf("Get Devices failed: %v", err)
-			}
-
-			if len(retrieved) != 10 {
-				t.Fatalf("Got %d, expected: %d", len(retrieved), 10)
-			}
+			assert.NoErrorf(t, err, "Get Devices failed: %v", err)
+			assert.Equal(t, 10, len(retrieved), "Expected getting %d devices", 10)
 		})
 	})
 }
@@ -630,37 +525,14 @@ func generateTestDevices(opts ...testDeviceOption) []testDevice {
 	return devices
 }
 
-func checkCreatedDevice(t *testing.T, device *model.Device, testDevice *testDevice, err error) {
-	if err != nil {
-		t.Fatalf("Create Device failed: %v", err)
-	}
+func assertCreatedDevice(t *testing.T, expected *testDevice, actual *model.Device, err error) {
+	assert.NoErrorf(t, err, "Create User failed: %v", err)
+	assert.NotNilf(t, actual, "Create Device failed - device is nil")
 
-	if device == nil {
-		t.Fatalf("Create Device failed - device is nil")
-		return
-	}
+	assert.NotEqualf(t, 0, actual.ID, "Invalid ID 0")
 
-	if device.ID == 0 {
-		t.Fatalf("Got 0, expected: a valid ID")
-	}
-
-	if device.UserID != model.ID(testDevice.userID) {
-		t.Fatalf("Got: %d, expected: %d (device ID: %d)",
-			device.UserID, testDevice.userID, device.ID)
-	}
-
-	if device.Serial != testDevice.serial {
-		t.Fatalf("Got: %s, expected: %s (device ID: %d)",
-			device.Serial, testDevice.serial, device.ID)
-	}
-
-	if device.Name != testDevice.name {
-		t.Fatalf("Got: %s, expected: %s (device ID: %d)",
-			device.Name, testDevice.name, device.ID)
-	}
-
-	if device.Token.String != testDevice.token {
-		t.Fatalf("Got: %s, expected: %s (device ID: %d)",
-			device.Token.String, testDevice.token, device.ID)
-	}
+	assert.Equalf(t, model.ID(expected.userID), actual.UserID, "ID mismatch (user ID: %d)", expected.userID)
+	assert.Equalf(t, expected.serial, actual.Serial, "Serial mismatch (user ID: %d)", expected.userID)
+	assert.Equalf(t, expected.name, actual.Name, "Name mismatch (user ID: %d)", expected.userID)
+	assert.Equalf(t, expected.token, actual.Token.String, "Token mismatch (user ID: %d)", expected.userID)
 }
