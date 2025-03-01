@@ -25,7 +25,7 @@ test: build-deps
 	@echo "Running tests..."
 	@MIGRATIONS_DIR=`readlink -f $(MIGRATIONS_DIR)` \
 		GOOSE_PATH=`readlink -f $(BIN_DIR)/goose` \
-		go test -v ./... -cover
+		go test -v ./... -cover -coverprofile=coverage.out
 
 lint:
 	@echo "Running linting and vetting..."
