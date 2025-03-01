@@ -67,15 +67,15 @@ func (r *SQLUserRepository) Create(email string, password string, token string) 
 			VALUES ($1, $2, $3)
 			RETURNING *
 	`
-	newUser := model.User{}
+	user := model.User{}
 
-	err := r.db.Get(&newUser, query, email, password, token)
+	err := r.db.Get(&user, query, email, password, token)
 	// TODO - Handle constraints (email unique) errors - User Already Exist
 	if err != nil {
 		return nil, err
 	}
 
-	return &newUser, nil
+	return &user, nil
 }
 
 func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.User, error) {

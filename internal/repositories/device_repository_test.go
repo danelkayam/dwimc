@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type testDevice struct {
@@ -45,7 +47,120 @@ func TestDeviceRepository(t *testing.T) {
 		})
 
 		t.Run("duplicate fields", func(t *testing.T) {
-			t.Fatalf("not implemented!")
+			t.Run("serial - same user", func(t *testing.T) {
+				t.Parallel()
+				device1 := &testDevice{
+					userID: 100001,
+					serial: "duplicate-device-serial-100001",
+					name:   "device-name-100001-01",
+					token:  uuid.NewString(),
+				}
+
+				device2 := &testDevice{
+					userID: 100001,
+					serial: "duplicate-device-serial-100001",
+					name:   "device-name-100001-02",
+					token:  uuid.NewString(),
+				}
+
+				device, err := repo.Create(model.ID(device1.userID), device1.serial,
+					device1.name, device1.token)
+				checkCreatedDevice(t, device, device1, err)
+
+				_, err = repo.Create(model.ID(device2.userID), device2.serial,
+					device2.name, device2.token)
+
+				if err == nil {
+					t.Fatalf("Got: nil, expected: error for duplicate fields")
+				}
+			})
+
+			t.Run("serial - multiple users", func(t *testing.T) {
+				t.Parallel()
+
+				sameSerial := uuid.NewString()
+				device1 := &testDevice{
+					userID: 100002,
+					serial: sameSerial,
+					name:   "device-name-100002-01",
+					token:  uuid.NewString(),
+				}
+
+				device2 := &testDevice{
+					userID: 100003,
+					serial: sameSerial,
+					name:   "device-name-100003-02",
+					token:  uuid.NewString(),
+				}
+
+				device, err := repo.Create(model.ID(device1.userID), device1.serial,
+					device1.name, device1.token)
+				checkCreatedDevice(t, device, device1, err)
+
+				device, err = repo.Create(model.ID(device2.userID), device2.serial,
+					device2.name, device2.token)
+				checkCreatedDevice(t, device, device2, err)
+			})
+
+			t.Run("token - same user", func(t *testing.T) {
+				t.Parallel()
+
+				sameToken := uuid.NewString()
+				device1 := &testDevice{
+					userID: 100004,
+					serial: uuid.NewString(),
+					name:   "device-name-100004-01",
+					token:  sameToken,
+				}
+
+				device2 := &testDevice{
+					userID: 100004,
+					serial: uuid.NewString(),
+					name:   "device-name-100004-02",
+					token:  sameToken,
+				}
+
+				device, err := repo.Create(model.ID(device1.userID), device1.serial,
+					device1.name, device1.token)
+				checkCreatedDevice(t, device, device1, err)
+
+				_, err = repo.Create(model.ID(device2.userID), device2.serial,
+					device2.name, device2.token)
+
+				if err == nil {
+					t.Fatalf("Got: nil, expected: error for duplicate token")
+				}
+			})
+
+			t.Run("token - multiple users", func(t *testing.T) {
+				t.Parallel()
+
+				sameToken := uuid.NewString()
+				device1 := &testDevice{
+					userID: 100005,
+					serial: uuid.NewString(),
+					name:   "device-name-100004-01",
+					token:  sameToken,
+				}
+
+				device2 := &testDevice{
+					userID: 100006,
+					serial: uuid.NewString(),
+					name:   "device-name-100004-02",
+					token:  sameToken,
+				}
+
+				device, err := repo.Create(model.ID(device1.userID), device1.serial,
+					device1.name, device1.token)
+				checkCreatedDevice(t, device, device1, err)
+
+				_, err = repo.Create(model.ID(device2.userID), device2.serial,
+					device2.name, device2.token)
+
+				if err == nil {
+					t.Fatalf("Got: nil, expected: error for duplicate token")
+				}
+			})
 		})
 	})
 
@@ -62,14 +177,7 @@ func TestDeviceRepository(t *testing.T) {
 
 			device, err := repo.Create(model.ID(testDevice.userID), testDevice.serial,
 				testDevice.name, testDevice.token)
-			if err != nil {
-				t.Fatalf("Create Device failed: %v", err)
-			}
-
-			if device == nil {
-				t.Fatalf("Create Device failed - device is nil")
-				return
-			}
+			checkCreatedDevice(t, device, &testDevice, err)
 
 			retrieved, err := repo.Get(device.ID)
 			if err != nil {
@@ -97,7 +205,44 @@ func TestDeviceRepository(t *testing.T) {
 
 			retrieved, err := repo.Get(model.ID(100000002))
 			if err != nil {
-				t.Fatalf("Get User failed: %v", err)
+				t.Fatalf("Get Device failed: %v", err)
+			}
+
+			if retrieved != nil {
+				t.Fatalf("Got: %v, expected: nil", retrieved)
+			}
+		})
+
+		t.Run("by serial", func(t *testing.T) {
+			t.Parallel()
+
+			devices := generateTestDevices(
+				withStartIndex(400),
+				withNumber(10),
+				withSpecificUser(40),
+			)
+
+			// sets specific device with the serial we will look for
+			serial := uuid.NewString()
+			devices[4].serial = serial
+
+			for _, device := range devices {
+				_, err := repo.Create(model.ID(device.userID), device.serial, device.name, device.token)
+				if err != nil {
+					t.Fatalf("Create Device failed: %v device: %+v", err, device)
+				}
+			}
+
+			device, err := repo.GetBySerial(model.ID(40), serial)
+			checkCreatedDevice(t, device, &devices[4], err)
+		})
+
+		t.Run("by serial - none", func(t *testing.T) {
+			t.Parallel()
+
+			retrieved, err := repo.GetBySerial(model.ID(100000002), uuid.NewString())
+			if err != nil {
+				t.Fatalf("Get Device failed: %v", err)
 			}
 
 			if retrieved != nil {
@@ -112,7 +257,8 @@ func TestDeviceRepository(t *testing.T) {
 				generateTestDevices(
 					withStartIndex(100),
 					withNumber(10),
-					withSpecificUser(10)),
+					withSpecificUser(10),
+				),
 				generateTestDevices(
 					withStartIndex(200),
 					withNumber(10),
@@ -122,7 +268,7 @@ func TestDeviceRepository(t *testing.T) {
 			for _, device := range devices {
 				_, err := repo.Create(model.ID(device.userID), device.serial, device.name, device.token)
 				if err != nil {
-					t.Fatalf("Create Device failed: %v", err)
+					t.Fatalf("Create Device failed: %v device: %+v", err, device)
 				}
 			}
 
@@ -208,6 +354,8 @@ func TestDeviceRepository(t *testing.T) {
 				t.Fatalf("Update Device failed - device is nil")
 			}
 
+			// TODO - fix this - should be simpler
+
 			if updated.Serial != newSerial {
 				t.Fatalf("Update Device failed - token not updated")
 			}
@@ -216,7 +364,7 @@ func TestDeviceRepository(t *testing.T) {
 				t.Fatalf("Update Device failed - name not updated")
 			}
 
-			if updated.Token != newToken {
+			if updated.Token.String != newToken {
 				t.Fatalf("Update Device failed - Token not updated")
 			}
 
@@ -380,7 +528,7 @@ func TestDeviceRepository(t *testing.T) {
 
 		t.Run("all by userID - none", func(t *testing.T) {
 			t.Parallel()
-			
+
 			devices := generateTestDevices(
 				withStartIndex(400),
 				withNumber(10),
@@ -418,8 +566,8 @@ func TestDeviceRepository(t *testing.T) {
 }
 
 type testDeviceOptions struct {
-	number         uint
-	startIndex     uint
+	number         int
+	startIndex     int
 	specificUser   bool
 	specificUserID uint
 }
@@ -428,13 +576,13 @@ type testDeviceOption func(options *testDeviceOptions)
 
 func withNumber(number uint) testDeviceOption {
 	return func(options *testDeviceOptions) {
-		(*options).number = number
+		(*options).number = int(number)
 	}
 }
 
 func withStartIndex(startIndex uint) testDeviceOption {
 	return func(options *testDeviceOptions) {
-		(*options).startIndex = startIndex
+		(*options).startIndex = int(startIndex)
 	}
 }
 
@@ -465,19 +613,21 @@ func generateTestDevices(opts ...testDeviceOption) []testDevice {
 		return userID
 	}
 
-	testUsers := make([]testDevice, options.number)
+	devices := make([]testDevice, options.number)
+	startDeviceIndex := options.startIndex
 
-	for i := options.startIndex; i < options.number; i++ {
-		testUsers[i] = testDevice{
-			ID:     uint(i),
-			userID: getUserID(uint(i)),
-			serial: fmt.Sprintf("serial-%d", i),
+	for i := 0; i < options.number; i++ {
+		userID := getUserID(uint(i))
+		devices[i] = testDevice{
+			ID:     uint(startDeviceIndex + i),
+			userID: userID,
+			serial: fmt.Sprintf("serial-%d-%d", int(userID), int(i)),
 			name:   fmt.Sprintf("name-%d", i),
-			token:  fmt.Sprintf("token-%d", i),
+			token:  fmt.Sprintf("token-%d-%d", int(userID), int(i)),
 		}
 	}
 
-	return testUsers
+	return devices
 }
 
 func checkCreatedDevice(t *testing.T, device *model.Device, testDevice *testDevice, err error) {
@@ -509,8 +659,8 @@ func checkCreatedDevice(t *testing.T, device *model.Device, testDevice *testDevi
 			device.Name, testDevice.name, device.ID)
 	}
 
-	if device.Token != testDevice.token {
+	if device.Token.String != testDevice.token {
 		t.Fatalf("Got: %s, expected: %s (device ID: %d)",
-			device.Token, testDevice.token, device.ID)
+			device.Token.String, testDevice.token, device.ID)
 	}
 }

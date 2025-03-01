@@ -2,22 +2,26 @@
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     token TEXT UNIQUE
 );
 
--- +goose statementbegin
-CREATE TRIGGER IF NOT EXISTS users_updated_at
-    AFTER UPDATE ON users
-    FOR EACH ROW
-    BEGIN
-        UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
-    END;
--- +goose statementend
+
+CREATE TABLE IF NOT EXISTS devices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    user_id INTEGER NOT NULL,
+    serial TEXT NOT NULL,
+    name TEXT NOT NULL,
+    token TEXT UNIQUE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(user_id, serial)
+);
 
 -- +goose Down
-DROP TRIGGER IF EXISTS users_updated_at;
+DROP TABLE devices;
 DROP TABLE users;
 
