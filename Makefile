@@ -3,6 +3,8 @@ BIN_DIR := bin
 BUILD_DIR := build
 SRC := cmd/dwimc/main.go
 
+COVERAGE_PROFILE := coverage.out
+
 DEFAULT_DB := dwimc.db
 MIGRATIONS_DIR := migrations
 DEP_GOOSE_REPO := https://github.com/pressly/goose.git
@@ -25,7 +27,7 @@ test: build-deps
 	@echo "Running tests..."
 	@MIGRATIONS_DIR=`readlink -f $(MIGRATIONS_DIR)` \
 		GOOSE_PATH=`readlink -f $(BIN_DIR)/goose` \
-		go test -v ./... -cover -coverprofile=coverage.out
+		go test -v ./... -cover -coverprofile=$(COVERAGE_PROFILE)
 
 lint:
 	@echo "Running linting and vetting..."
