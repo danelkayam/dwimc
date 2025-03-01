@@ -21,7 +21,18 @@ CREATE TABLE IF NOT EXISTS devices (
     UNIQUE(user_id, serial)
 );
 
+CREATE TABLE IF NOT EXISTS locations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    device_id INTEGER NOT NULL,
+    latitude REAL NOT NULL,
+    longitude REAL NOT NULL,
+    FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
+);
+
 -- +goose Down
+DROP TABLE locations;
 DROP TABLE devices;
 DROP TABLE users;
 

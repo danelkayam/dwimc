@@ -52,7 +52,7 @@ func (r *SQLDeviceRepository) Get(id model.ID) (*model.Device, error) {
 		WHERE id = ?
 	`
 
-	device := model.Device{}
+	var device model.Device
 	err := r.db.Get(&device, query, id)
 
 	if err != nil {
@@ -74,7 +74,7 @@ func (r *SQLDeviceRepository) GetBySerial(userID model.ID, serial string) (*mode
 		WHERE user_id = ? AND serial = ?
 	`
 
-	device := model.Device{}
+	var device model.Device
 	err := r.db.Get(&device, query, userID, serial)
 
 	if err != nil {
@@ -101,6 +101,10 @@ func (r *SQLDeviceRepository) GetAllByUserID(userID model.ID) ([]model.Device, e
 	err := r.db.Select(&devices, query, userID)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return devices, nil
+		}
+
 		return nil, err
 	}
 
@@ -114,9 +118,9 @@ func (r *SQLDeviceRepository) Create(userID model.ID, serial string, name string
 		RETURNING *
 	`
 
-	device := model.Device{}
-
+	var device model.Device
 	err := r.db.Get(&device, query, userID, serial, name, token)
+	
 	// TODO - handle constraints
 	if err != nil {
 		return nil, err
@@ -149,20 +153,21 @@ func (r *SQLDeviceRepository) Update(id model.ID, fields ...UpdateField) (*model
 	query += strings.Join(setClauses, ", ") + " WHERE id = ? RETURNING *"
 	args = append(args, id)
 
-	updatedDevice := model.Device{}
-
-	err := r.db.Get(&updatedDevice, query, args...)
+	var device model.Device
+	err := r.db.Get(&device, query, args...)
+	
 	if err != nil {
 		return nil, err
 	}
 
-	return &updatedDevice, nil
+	return &device, nil
 }
 
 func (r *SQLDeviceRepository) Delete(id model.ID) error {
 	query := `DELETE FROM devices WHERE id = ?`
 
 	_, err := r.db.Exec(query, id)
+	
 	if err != nil {
 		// TODO - handle errors?
 		return err
@@ -175,6 +180,7 @@ func (r *SQLDeviceRepository) DeleteAllByUserID(userID model.ID) (int64, error) 
 	query := `DELETE FROM devices WHERE user_id = ?`
 
 	res, err := r.db.Exec(query, userID)
+	
 	if err != nil {
 		// TODO - handle errors?
 		return 0, err

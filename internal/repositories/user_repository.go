@@ -67,9 +67,9 @@ func (r *SQLUserRepository) Create(email string, password string, token string) 
 			VALUES ($1, $2, $3)
 			RETURNING *
 	`
-	user := model.User{}
-
+	var user model.User
 	err := r.db.Get(&user, query, email, password, token)
+
 	// TODO - Handle constraints (email unique) errors - User Already Exist
 	if err != nil {
 		return nil, err
@@ -102,20 +102,21 @@ func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.U
 	query += strings.Join(setClauses, ", ") + " WHERE id = ? RETURNING *"
 	args = append(args, id)
 
-	updatedUser := model.User{}
+	var user model.User
+	err := r.db.Get(&user, query, args...)
 
-	err := r.db.Get(&updatedUser, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	return &updatedUser, nil
+	return &user, nil
 }
 
 func (r *SQLUserRepository) Delete(id model.ID) error {
 	query := `DELETE FROM users WHERE id = ?`
 
 	_, err := r.db.Exec(query, id)
+	
 	if err != nil {
 		// TODO - handle errors?
 		return err
@@ -125,7 +126,7 @@ func (r *SQLUserRepository) Delete(id model.ID) error {
 }
 
 func getUserBy[T model.ID | string](db *sqlx.DB, query string, field T) (*model.User, error) {
-	user := model.User{}
+	var user model.User
 	err := db.Get(&user, query, field)
 
 	if err != nil {
