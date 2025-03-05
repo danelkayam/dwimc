@@ -16,6 +16,7 @@
 .data/
 .vscode
 bin/
+bin-tools/
 build/
 dwimc.db
 coverage.out
