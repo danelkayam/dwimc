@@ -1,12 +1,12 @@
 APP_NAME := dwimc
-BIN_DIR := bin
-BUILD_DIR := build
-SRC := cmd/dwimc/main.go
+BIN_DIR := $(CURDIR)/bin
+BUILD_DIR := $(CURDIR)/build
+SRC := $(CURDIR)/cmd/dwimc/main.go
 
-COVERAGE_PROFILE := coverage.out
+COVERAGE_PROFILE := $(CURDIR)/coverage.out
 
-DEFAULT_DB := dwimc.db
-MIGRATIONS_DIR := migrations
+DEFAULT_DB := $(CURDIR)/dwimc.db
+MIGRATIONS_DIR := $(CURDIR)/migrations
 DEP_GOOSE_REPO := https://github.com/pressly/goose.git
 DEP_GOOSE_VERSION := v3.24.1
 
@@ -25,8 +25,8 @@ clean:
 
 test: build-deps
 	@echo "Running tests..."
-	@MIGRATIONS_DIR=`readlink -f $(MIGRATIONS_DIR)` \
-		GOOSE_PATH=`readlink -f $(BIN_DIR)/goose` \
+	MIGRATIONS_DIR=$(MIGRATIONS_DIR) \
+		GOOSE_PATH=$(BIN_DIR)/goose \
 		go test -v ./... -cover -coverprofile=$(COVERAGE_PROFILE)
 
 lint:
@@ -83,4 +83,4 @@ $(BIN_DIR)/goose: $(BUILD_DIR)/goose
 		go build \
 			-ldflags="-s -w" \
 			-tags='no_postgres no_clickhouse no_mssql no_mysql' \
-			-o ../../$(BIN_DIR)/goose ./cmd/goose
+			-o $(BIN_DIR)/goose ./cmd/goose
