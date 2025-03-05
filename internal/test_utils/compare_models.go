@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-type OnFailedCheck func(field string, shouldBeEqual bool, got interface{}, expected interface{})
+type OnFailedCheck func(field string, shouldBeEqual bool, got any, expected any)
 
 type CheckField[T any] func(checkFields *map[string]bool)
 

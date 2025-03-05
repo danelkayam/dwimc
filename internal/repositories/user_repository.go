@@ -84,9 +84,9 @@ func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.U
 	}
 
 	query := "UPDATE users SET "
-	updates := map[string]interface{}{}
+	updates := map[string]any{}
 	setClauses := []string{}
-	args := []interface{}{}
+	args := []any{}
 
 	for _, field := range fields {
 		field(&updates)

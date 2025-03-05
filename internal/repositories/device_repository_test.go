@@ -179,7 +179,7 @@ func TestDeviceRepository(t *testing.T) {
 			assert.NotNilf(t, retrieved, "Get Device failed - device is nil")
 
 			testutils.AssertEqualItems(device, retrieved,
-				func(field string, shouldBeEqual bool, got, expected interface{}) {
+				func(field string, shouldBeEqual bool, got any, expected any) {
 					t.Helper()
 					if shouldBeEqual {
 						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
@@ -316,7 +316,7 @@ func TestDeviceRepository(t *testing.T) {
 			assert.Equal(t, newToken, updated.Token.String, "Update Device failed - token not updated")
 
 			testutils.AssertEqualItems(updated, device,
-				func(field string, shouldBeEqual bool, got, expected interface{}) {
+				func(field string, shouldBeEqual bool, got any, expected any) {
 					t.Helper()
 					if shouldBeEqual {
 						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
@@ -511,7 +511,7 @@ func generateTestDevices(opts ...testDeviceOption) []testDevice {
 	devices := make([]testDevice, options.number)
 	startDeviceIndex := options.startIndex
 
-	for i := 0; i < options.number; i++ {
+	for i := range options.number {
 		userID := getUserID(uint(i))
 		devices[i] = testDevice{
 			ID:     uint(startDeviceIndex + i),

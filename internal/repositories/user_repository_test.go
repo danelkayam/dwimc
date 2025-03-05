@@ -50,8 +50,10 @@ func TestUserRepository(t *testing.T) {
 				token:    "duplicate-email-token",
 			}
 
-			repo.Create(testUser.email, testUser.password, testUser.token)
-			_, err := repo.Create(testUser.email, "different-password-0", "different-token-0")
+			_, err := repo.Create(testUser.email, testUser.password, testUser.token)
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
+
+			_, err = repo.Create(testUser.email, "different-password-0", "different-token-0")
 
 			assert.Errorf(t, err, "Expected error for duplicate email")
 		})
@@ -63,8 +65,10 @@ func TestUserRepository(t *testing.T) {
 				token:    "duplicate-token-token",
 			}
 
-			repo.Create(testUser.email, testUser.password, testUser.token)
-			_, err := repo.Create("duplicate-token-1@dwimc.awesome", "different-password-1", testUser.token)
+			_, err := repo.Create(testUser.email, testUser.password, testUser.token)
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
+			
+			_, err = repo.Create("duplicate-token-1@dwimc.awesome", "different-password-1", testUser.token)
 
 			assert.Errorf(t, err, "Expected error for duplicate email")
 		})
@@ -135,7 +139,7 @@ func TestUserRepository(t *testing.T) {
 			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
 			testutils.AssertEqualItems(createdUser, updatedUser,
-				func(field string, shouldBeEqual bool, got, expected interface{}) {
+				func(field string, shouldBeEqual bool, got any, expected any) {
 					t.Helper()
 					if shouldBeEqual {
 						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
@@ -176,7 +180,7 @@ func TestUserRepository(t *testing.T) {
 			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
 			testutils.AssertEqualItems(createdUser, updatedUser,
-				func(field string, shouldBeEqual bool, got, expected interface{}) {
+				func(field string, shouldBeEqual bool, got any, expected any) {
 					t.Helper()
 					if shouldBeEqual {
 						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
@@ -203,7 +207,7 @@ func TestUserRepository(t *testing.T) {
 			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
 			testutils.AssertEqualItems(createdUser, updatedUser,
-				func(field string, shouldBeEqual bool, got, expected interface{}) {
+				func(field string, shouldBeEqual bool, got any, expected any) {
 					t.Helper()
 					if shouldBeEqual {
 						t.Fatalf("Mismatch in field %q: got %v, expected %v", field, got, expected)
@@ -243,7 +247,7 @@ func generateTestUsers() []testUser {
 	const size = 10
 	testUsers := make([]testUser, size)
 
-	for i := 0; i < len(testUsers); i++ {
+	for i := range testUsers {
 		testUsers[i] = testUser{
 			id:       uint(i),
 			email:    fmt.Sprintf("user-%d@dwimc.awesome", i),

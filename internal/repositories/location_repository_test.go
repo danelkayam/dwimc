@@ -298,7 +298,7 @@ func generateTestLocations(opts ...testLocationOption) []testLocation {
 	locations := make([]testLocation, options.number)
 	startLocationIndex := options.startIndex
 
-	for i := 0; i < options.number; i++ {
+	for i := range options.number {
 		deviceID := getDeviceID(uint(i))
 		locations[i] = testLocation{
 			ID:        model.ID(startLocationIndex + i),
