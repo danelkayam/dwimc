@@ -54,8 +54,7 @@ func TestUserRepository(t *testing.T) {
 			assert.NoErrorf(t, err, "Create User failed: %v", err)
 
 			_, err = repo.Create(testUser.email, "different-password-0", "different-token-0")
-
-			assert.Errorf(t, err, "Expected error for duplicate email")
+			assert.ErrorIsf(t, err, model.ErrItemAlreadyExists, "Expected error for duplicate email")
 		})
 
 		t.Run("duplicate token", func(t *testing.T) {
@@ -67,10 +66,9 @@ func TestUserRepository(t *testing.T) {
 
 			_, err := repo.Create(testUser.email, testUser.password, testUser.token)
 			assert.NoErrorf(t, err, "Create User failed: %v", err)
-			
-			_, err = repo.Create("duplicate-token-1@dwimc.awesome", "different-password-1", testUser.token)
 
-			assert.Errorf(t, err, "Expected error for duplicate email")
+			_, err = repo.Create("duplicate-token-1@dwimc.awesome", "different-password-1", testUser.token)
+			assert.ErrorIsf(t, err, model.ErrItemAlreadyExists, "Expected error for duplicate token")
 		})
 	})
 
@@ -91,10 +89,8 @@ func TestUserRepository(t *testing.T) {
 		t.Run("by ID - not found", func(t *testing.T) {
 			t.Parallel()
 
-			retrieved, err := repo.GetBy(model.ID(123456789))
-
-			assert.NoErrorf(t, err, "Get User failed: %v", err)
-			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
+			_, err := repo.GetBy(model.ID(123456789))
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
 		t.Run("by email", func(t *testing.T) {
@@ -110,10 +106,8 @@ func TestUserRepository(t *testing.T) {
 		t.Run("by email - not found", func(t *testing.T) {
 			t.Parallel()
 
-			retrieved, err := repo.GetByEmail("not-existing-user@dwimc.awesome")
-
-			assert.NoErrorf(t, err, "Get User failed: %v", err)
-			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
+			_, err := repo.GetByEmail("not-existing-user@dwimc.awesome")
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 	})
 
@@ -163,7 +157,7 @@ func TestUserRepository(t *testing.T) {
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			_, err = repo.Update(createdUser.ID)
-			assert.Errorf(t, err, "Expected error for missing fields: %v", err)
+			assert.ErrorIsf(t, err, model.ErrInvalidArgs, "Expected error for missing fields")
 		})
 
 		t.Run("update password", func(t *testing.T) {
@@ -222,24 +216,31 @@ func TestUserRepository(t *testing.T) {
 	})
 
 	t.Run("delete user", func(t *testing.T) {
-		t.Parallel()
-
 		db := setupTestDB(t)
 		repo := NewSQLUserRepository(db)
 
-		user, err := repo.Create(testUsers[0].email, testUsers[0].password, testUsers[0].token)
-		assert.NoErrorf(t, err, "Create User failed: %v", err)
+		t.Run("by id", func(t *testing.T) {
+			t.Parallel()
 
-		retrieved, err := repo.GetBy(user.ID)
-		assertGetUser(t, user, retrieved, err)
+			user, err := repo.Create(testUsers[0].email, testUsers[0].password, testUsers[0].token)
+			assert.NoErrorf(t, err, "Create User failed: %v", err)
 
-		err = repo.Delete(user.ID)
-		assert.NoErrorf(t, err, "Delete User failed: %v", err)
+			retrieved, err := repo.GetBy(user.ID)
+			assertGetUser(t, user, retrieved, err)
 
-		retrieved, err = repo.GetBy(user.ID)
-		assert.NoErrorf(t, err, "Get User failed: %v", err)
+			err = repo.Delete(user.ID)
+			assert.NoErrorf(t, err, "Delete User failed: %v", err)
 
-		assert.Nilf(t, retrieved, "Got %+v, expected: nil", retrieved)
+			_, err = repo.GetBy(user.ID)
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
+		})
+
+		t.Run("by id - none", func(t *testing.T) {
+			t.Parallel()
+
+			err := repo.Delete(model.ID(99999))
+			assert.NoErrorf(t, err, "Delete User failed: %v", err)
+		})
 	})
 }
 

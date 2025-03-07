@@ -76,9 +76,8 @@ func TestLocationRepo(t *testing.T) {
 				assertCreatedLocation(t, &location, created, err)
 			}
 
-			retrieved, err := repo.GetLast(model.ID(999999))
-			assert.NoErrorf(t, err, "Get location failed: %v", err)
-			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
+			_, err := repo.GetLast(model.ID(999999))
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
 		t.Run("all by device", func(t *testing.T) {
@@ -155,9 +154,8 @@ func TestLocationRepo(t *testing.T) {
 			err = repo.Delete(created.ID)
 			assert.NoErrorf(t, err, "Delete location failed: %v", err)
 
-			deleted, err := repo.GetLast(10)
-			assert.NoErrorf(t, err, "Get location failed: %v", err)
-			assert.Nilf(t, deleted, "Got: %v, expected: nil", deleted)
+			_, err = repo.GetLast(10)
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
 		t.Run("by ID - none", func(t *testing.T) {

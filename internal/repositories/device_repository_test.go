@@ -124,8 +124,7 @@ func TestDeviceRepository(t *testing.T) {
 
 				_, err = repo.Create(model.ID(device2.userID), device2.serial,
 					device2.name, device2.token)
-
-				assert.Errorf(t, err, "Expected error for duplicate token")
+				assert.ErrorIsf(t, err, model.ErrItemAlreadyExists, "Expected error for duplicate token")
 			})
 
 			t.Run("token - multiple users", func(t *testing.T) {
@@ -152,8 +151,7 @@ func TestDeviceRepository(t *testing.T) {
 
 				_, err = repo.Create(model.ID(device2.userID), device2.serial,
 					device2.name, device2.token)
-
-				assert.Errorf(t, err, "Expected error for duplicate token")
+				assert.ErrorIsf(t, err, model.ErrItemAlreadyExists, "Expected error for duplicate token")
 			})
 		})
 	})
@@ -192,10 +190,8 @@ func TestDeviceRepository(t *testing.T) {
 		t.Run("by id - none", func(t *testing.T) {
 			t.Parallel()
 
-			retrieved, err := repo.Get(model.ID(100000002))
-
-			assert.NoErrorf(t, err, "Get Device failed: %v", err)
-			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
+			_, err := repo.Get(model.ID(100000002))
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
 		t.Run("by serial", func(t *testing.T) {
@@ -223,10 +219,8 @@ func TestDeviceRepository(t *testing.T) {
 		t.Run("by serial - none", func(t *testing.T) {
 			t.Parallel()
 
-			retrieved, err := repo.GetBySerial(model.ID(100000002), uuid.NewString())
-
-			assert.NoErrorf(t, err, "Get Device failed: %v", err)
-			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
+			_, err := repo.GetBySerial(model.ID(100000002), uuid.NewString())
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
 		t.Run("all by user id", func(t *testing.T) {
@@ -346,7 +340,7 @@ func TestDeviceRepository(t *testing.T) {
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			_, err = repo.Update(device.ID)
-			assert.Errorf(t, err, "Expected error for missing fields")
+			assert.ErrorIsf(t, err, model.ErrInvalidArgs, "Expected error for missing fields")
 		})
 	})
 
@@ -374,10 +368,8 @@ func TestDeviceRepository(t *testing.T) {
 
 			assert.NoErrorf(t, err, "Delete Device failed: %v", err)
 
-			retrieved, err := repo.Get(device.ID)
-
-			assert.NoErrorf(t, err, "Get Device failed: %v", err)
-			assert.Nilf(t, retrieved, "Got: %v, expected: nil", retrieved)
+			_, err = repo.Get(device.ID)
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
 		t.Run("by id - none", func(t *testing.T) {
@@ -394,7 +386,6 @@ func TestDeviceRepository(t *testing.T) {
 			}
 
 			err := repo.Delete(model.ID(99999999))
-
 			assert.NoErrorf(t, err, "Delete Device failed: %v", err)
 
 			retrieved, err := repo.GetAllByUserID(model.ID(10))

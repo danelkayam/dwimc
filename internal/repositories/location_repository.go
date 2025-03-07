@@ -1,9 +1,7 @@
 package repositories
 
 import (
-	"database/sql"
 	"dwimc/internal/model"
-	"errors"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -35,14 +33,10 @@ func (r *SQLLocationRepository) GetLast(deviceID model.ID) (*model.Location, err
 	`
 
 	var location model.Location
+
 	err := r.db.Get(&location, query, deviceID)
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-
-		return nil, err
+		return nil, handleSQLError("failed getting location", err)
 	}
 
 	return &location, nil
@@ -58,14 +52,10 @@ func (r *SQLLocationRepository) GetAllBy(deviceID model.ID) ([]model.Location, e
 	`
 
 	locations := []model.Location{}
+
 	err := r.db.Select(&locations, query, deviceID)
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return locations, nil
-		}
-
-		return nil, err
+		return nil, handleSQLError("failed getting locations by device", err)
 	}
 
 	return locations, nil
@@ -79,11 +69,10 @@ func (r *SQLLocationRepository) Create(deviceID model.ID, latitude float64, long
 	`
 
 	var location model.Location
-	err := r.db.Get(&location, query, deviceID, latitude, longitude)
 
-	// TODO - handle constraints
+	err := r.db.Get(&location, query, deviceID, latitude, longitude)
 	if err != nil {
-		return nil, err
+		return nil, handleSQLError("failed creating location", err)
 	}
 
 	return &location, nil
@@ -93,10 +82,8 @@ func (r *SQLLocationRepository) Delete(id model.ID) error {
 	query := `DELETE FROM locations WHERE id = ?`
 
 	_, err := r.db.Exec(query, id)
-
 	if err != nil {
-		// TODO - handle errors?
-		return err
+		return handleSQLError("failed deleting location", err)
 	}
 
 	return nil
@@ -106,15 +93,13 @@ func (r *SQLLocationRepository) DeleteAllBy(deviceID model.ID) (int64, error) {
 	query := `DELETE FROM locations WHERE device_id = ?`
 
 	res, err := r.db.Exec(query, deviceID)
-
 	if err != nil {
-		// TODO - handle errors?
-		return 0, err
+		return 0, handleSQLError("failed deleting locations by device", err)
 	}
 
 	total, err := res.RowsAffected()
 	if err != nil {
-		return 0, err
+		return 0, handleSQLError("failed deleting locations by device", err)
 	}
 
 	return total, nil

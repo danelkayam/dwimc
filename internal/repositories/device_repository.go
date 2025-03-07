@@ -1,9 +1,8 @@
 package repositories
 
 import (
-	"database/sql"
 	"dwimc/internal/model"
-	"errors"
+	"dwimc/internal/utils"
 	"fmt"
 	"strings"
 
@@ -53,14 +52,10 @@ func (r *SQLDeviceRepository) Get(id model.ID) (*model.Device, error) {
 	`
 
 	var device model.Device
+
 	err := r.db.Get(&device, query, id)
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-
-		return nil, err
+		return nil, handleSQLError("failed getting device", err)
 	}
 
 	return &device, nil
@@ -75,14 +70,10 @@ func (r *SQLDeviceRepository) GetBySerial(userID model.ID, serial string) (*mode
 	`
 
 	var device model.Device
+
 	err := r.db.Get(&device, query, userID, serial)
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-
-		return nil, err
+		return nil, handleSQLError("failed getting device", err)
 	}
 
 	return &device, nil
@@ -98,14 +89,10 @@ func (r *SQLDeviceRepository) GetAllByUserID(userID model.ID) ([]model.Device, e
 	`
 
 	devices := []model.Device{}
+
 	err := r.db.Select(&devices, query, userID)
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return devices, nil
-		}
-
-		return nil, err
+		return nil, handleSQLError("failed getting devices by user", err)
 	}
 
 	return devices, nil
@@ -119,11 +106,10 @@ func (r *SQLDeviceRepository) Create(userID model.ID, serial string, name string
 	`
 
 	var device model.Device
+
 	err := r.db.Get(&device, query, userID, serial, name, token)
-	
-	// TODO - handle constraints
 	if err != nil {
-		return nil, err
+		return nil, handleSQLError("failed creating device", err)
 	}
 
 	return &device, nil
@@ -131,7 +117,7 @@ func (r *SQLDeviceRepository) Create(userID model.ID, serial string, name string
 
 func (r *SQLDeviceRepository) Update(id model.ID, fields ...UpdateField) (*model.Device, error) {
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("Update error: missing fields")
+		return nil, utils.AsError(model.ErrInvalidArgs, "failed updating device", "missing fields")
 	}
 
 	query := "UPDATE devices SET "
@@ -154,10 +140,10 @@ func (r *SQLDeviceRepository) Update(id model.ID, fields ...UpdateField) (*model
 	args = append(args, id)
 
 	var device model.Device
+
 	err := r.db.Get(&device, query, args...)
-	
 	if err != nil {
-		return nil, err
+		return nil, handleSQLError("failed updating device", err)
 	}
 
 	return &device, nil
@@ -167,10 +153,8 @@ func (r *SQLDeviceRepository) Delete(id model.ID) error {
 	query := `DELETE FROM devices WHERE id = ?`
 
 	_, err := r.db.Exec(query, id)
-	
 	if err != nil {
-		// TODO - handle errors?
-		return err
+		return handleSQLError("failed deleting device", err)
 	}
 
 	return nil
@@ -180,15 +164,13 @@ func (r *SQLDeviceRepository) DeleteAllByUserID(userID model.ID) (int64, error) 
 	query := `DELETE FROM devices WHERE user_id = ?`
 
 	res, err := r.db.Exec(query, userID)
-	
 	if err != nil {
-		// TODO - handle errors?
-		return 0, err
+		return 0, handleSQLError("failed deleting device by user", err)
 	}
 
 	total, err := res.RowsAffected()
 	if err != nil {
-		return 0, err
+		return 0, handleSQLError("failed deleting device by user", err)
 	}
 
 	return total, nil

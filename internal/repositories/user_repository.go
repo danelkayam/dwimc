@@ -1,9 +1,8 @@
 package repositories
 
 import (
-	"database/sql"
 	"dwimc/internal/model"
-	"errors"
+	"dwimc/internal/utils"
 	"fmt"
 	"strings"
 
@@ -21,7 +20,6 @@ func (userUpdateField) WithToken(token string) UpdateField {
 }
 
 var UserUpdate userUpdateField
-
 
 type UserRepository interface {
 	GetBy(id model.ID) (*model.User, error)
@@ -68,11 +66,10 @@ func (r *SQLUserRepository) Create(email string, password string, token string) 
 			RETURNING *
 	`
 	var user model.User
-	err := r.db.Get(&user, query, email, password, token)
 
-	// TODO - Handle constraints (email unique) errors - User Already Exist
+	err := r.db.Get(&user, query, email, password, token)
 	if err != nil {
-		return nil, err
+		return nil, handleSQLError("failed creating user", err)
 	}
 
 	return &user, nil
@@ -80,7 +77,7 @@ func (r *SQLUserRepository) Create(email string, password string, token string) 
 
 func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.User, error) {
 	if len(fields) == 0 {
-		return nil, fmt.Errorf("Update error: missing fields")
+		return nil, utils.AsError(model.ErrInvalidArgs, "failed updating user", "missing fields")
 	}
 
 	query := "UPDATE users SET "
@@ -103,10 +100,10 @@ func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.U
 	args = append(args, id)
 
 	var user model.User
-	err := r.db.Get(&user, query, args...)
 
+	err := r.db.Get(&user, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, handleSQLError("failed updating user", err)
 	}
 
 	return &user, nil
@@ -116,10 +113,8 @@ func (r *SQLUserRepository) Delete(id model.ID) error {
 	query := `DELETE FROM users WHERE id = ?`
 
 	_, err := r.db.Exec(query, id)
-	
 	if err != nil {
-		// TODO - handle errors?
-		return err
+		return handleSQLError("failed deleting user", err)
 	}
 
 	return nil
@@ -127,14 +122,10 @@ func (r *SQLUserRepository) Delete(id model.ID) error {
 
 func getUserBy[T model.ID | string](db *sqlx.DB, query string, field T) (*model.User, error) {
 	var user model.User
+
 	err := db.Get(&user, query, field)
-
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-
-		return nil, err
+		return nil, handleSQLError("failed getting user", err)
 	}
 
 	return &user, nil
