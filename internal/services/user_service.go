@@ -21,20 +21,12 @@ func NewDefaultUserService(repo repositories.UserRepository) UserService {
 }
 
 func (s *DefaultUserService) Create(email string, password string) (*model.User, error) {
-	if email == "" {
-		return nil, utils.AsError(model.ErrInvalidArgs, "Missing Email")
+	if err := validateEmail(email); err != nil {
+		return nil, err
 	}
 
-	if !utils.IsValidEmail(email) {
-		return nil, utils.AsError(model.ErrInvalidArgs, "Invalid Email")
-	}
-
-	if password == "" {
-		return nil, utils.AsError(model.ErrInvalidArgs, "Missing Password")
-	}
-
-	if !utils.IsValidPassword(password) {
-		return nil, utils.AsError(model.ErrInvalidArgs, "Invalid Password")
+	if err := validatePassword(password); err != nil {
+		return nil, err
 	}
 
 	hashedPassword, err := utils.HashPassword(password)
@@ -44,7 +36,7 @@ func (s *DefaultUserService) Create(email string, password string) (*model.User,
 
 	user, err := s.repo.Create(email, hashedPassword)
 	if err != nil {
-		return nil, err
+		return nil, utils.AsError(err, "Failed to create user")
 	}
 
 	return user, nil
@@ -55,29 +47,33 @@ func (s *DefaultUserService) Update(id model.ID, fields ...model.UpdateField) (*
 		return nil, utils.AsError(model.ErrInvalidArgs, "Missing Fields")
 	}
 
-	if err := utils.NewUpdateFieldsValidator(fields).
+	validator := utils.NewUpdateFieldsValidator(fields).
 		WithValidator("email", validateEmail).
-		WithValidator("password", validatePassword).
-		Validate(); err != nil {
+		WithValidator("password", validatePassword)
 
+	if err := validator.Validate(); err != nil {
 		return nil, err
 	}
 
 	updated, err := s.repo.Update(id, fields...)
 	if err != nil {
-		return nil, err
+		return nil, utils.AsError(err, "Failed to update user")
 	}
 
 	return updated, nil
 }
 
 func (s *DefaultUserService) Delete(id model.ID) error {
-	return s.repo.Delete(id)
+	if err := s.repo.Delete(id); err != nil {
+		return utils.AsError(err, "Failed to delete user")
+	}
+
+	return nil
 }
 
 func validateEmail(value any) error {
 	email, ok := value.(string)
-	if !ok {
+	if !ok || email == "" {
 		return utils.AsError(model.ErrInvalidArgs, "Invalid Email")
 	}
 
@@ -90,7 +86,7 @@ func validateEmail(value any) error {
 
 func validatePassword(value any) error {
 	password, ok := value.(string)
-	if !ok {
+	if !ok || password == "" {
 		return utils.AsError(model.ErrInvalidArgs, "Invalid Password")
 	}
 
