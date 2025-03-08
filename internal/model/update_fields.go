@@ -1,4 +1,4 @@
-package repositories
+package model
 
 type UpdateField func(updateFields *map[string]any)
 

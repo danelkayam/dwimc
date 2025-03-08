@@ -9,28 +9,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type deviceUpdateField struct{}
-
-func (deviceUpdateField) WithSerial(serial string) UpdateField {
-	return WithField("serial", serial)
-}
-
-func (deviceUpdateField) WithName(name string) UpdateField {
-	return WithField("name", name)
-}
-
-func (deviceUpdateField) WithToken(token string) UpdateField {
-	return WithField("token", token)
-}
-
-var DeviceUpdate deviceUpdateField
-
 type DeviceRepository interface {
 	Get(id model.ID) (*model.Device, error)
 	GetBySerial(userID model.ID, serial string) (*model.Device, error)
 	GetAllByUserID(userID model.ID) ([]model.Device, error)
 	Create(userId model.ID, serial string, name string, token string) (*model.Device, error)
-	Update(id model.ID, fields ...UpdateField) (*model.Device, error)
+	Update(id model.ID, fields ...model.UpdateField) (*model.Device, error)
 	Delete(id model.ID) error
 	DeleteAllByUserID(userID model.ID) (int64, error)
 }
@@ -115,7 +99,7 @@ func (r *SQLDeviceRepository) Create(userID model.ID, serial string, name string
 	return &device, nil
 }
 
-func (r *SQLDeviceRepository) Update(id model.ID, fields ...UpdateField) (*model.Device, error) {
+func (r *SQLDeviceRepository) Update(id model.ID, fields ...model.UpdateField) (*model.Device, error) {
 	if len(fields) == 0 {
 		return nil, utils.AsError(model.ErrInvalidArgs, "failed updating device", "missing fields")
 	}

@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS users (
     token TEXT UNIQUE
 );
 
-
 CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -31,7 +30,13 @@ CREATE TABLE IF NOT EXISTS locations (
     FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
 );
 
+CREATE INDEX IF NOT EXISTS idx_devices_user_id ON devices(user_id);
+CREATE INDEX IF NOT EXISTS idx_locations_device_id ON locations(device_id);
+
 -- +goose Down
+DROP INDEX IF EXISTS idx_locations_device_id;
+DROP INDEX IF EXISTS idx_devices_user_id;
+
 DROP TABLE locations;
 DROP TABLE devices;
 DROP TABLE users;

@@ -141,10 +141,10 @@ func TestLocationRepo(t *testing.T) {
 
 		t.Run("by ID", func(t *testing.T) {
 			t.Parallel()
-			
+
 			location := testLocation{
-				deviceID: 10,
-				latitude: 10.20,
+				deviceID:  10,
+				latitude:  10.20,
 				longitude: 30.40,
 			}
 
@@ -162,7 +162,7 @@ func TestLocationRepo(t *testing.T) {
 			t.Parallel()
 
 			deviceID := model.ID(20)
-			
+
 			locations := generateTestLocations(
 				generateDevice.withStartIndex(200),
 				generateDevice.withNumber(10),
@@ -184,9 +184,9 @@ func TestLocationRepo(t *testing.T) {
 
 		t.Run("all by device", func(t *testing.T) {
 			t.Parallel()
-			
+
 			deviceID := model.ID(30)
-			
+
 			locations := generateTestLocations(
 				generateDevice.withStartIndex(300),
 				generateDevice.withNumber(10),
@@ -209,9 +209,9 @@ func TestLocationRepo(t *testing.T) {
 
 		t.Run("all by device - none", func(t *testing.T) {
 			t.Parallel()
-			
+
 			deviceID := model.ID(40)
-			
+
 			locations := generateTestLocations(
 				generateDevice.withStartIndex(400),
 				generateDevice.withNumber(10),

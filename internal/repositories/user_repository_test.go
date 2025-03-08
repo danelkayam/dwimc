@@ -127,8 +127,8 @@ func TestUserRepository(t *testing.T) {
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			updatedUser, err := repo.Update(createdUser.ID,
-				UserUpdate.WithPassword("updated-password-0"),
-				UserUpdate.WithToken("updated-token-0"),
+				model.UserUpdate.WithPassword("updated-password-0"),
+				model.UserUpdate.WithToken("updated-token-0"),
 			)
 			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
@@ -170,7 +170,7 @@ func TestUserRepository(t *testing.T) {
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			updatedUser, err := repo.Update(createdUser.ID,
-				UserUpdate.WithPassword("updated-password-2"))
+				model.UserUpdate.WithPassword("updated-password-2"))
 			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
 			testutils.AssertEqualItems(createdUser, updatedUser,
@@ -197,7 +197,7 @@ func TestUserRepository(t *testing.T) {
 			time.Sleep(UPDATE_SLEEP_DURATION)
 
 			updatedUser, err := repo.Update(createdUser.ID,
-				UserUpdate.WithToken("updated-token-3"))
+				model.UserUpdate.WithToken("updated-token-3"))
 			assert.NoErrorf(t, err, "Update User failed: %v", err)
 
 			testutils.AssertEqualItems(createdUser, updatedUser,

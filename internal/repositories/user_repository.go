@@ -9,23 +9,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type userUpdateField struct{}
-
-func (userUpdateField) WithPassword(password string) UpdateField {
-	return WithField("password", password)
-}
-
-func (userUpdateField) WithToken(token string) UpdateField {
-	return WithField("token", token)
-}
-
-var UserUpdate userUpdateField
-
 type UserRepository interface {
 	GetBy(id model.ID) (*model.User, error)
 	GetByEmail(email string) (*model.User, error)
 	Create(email string, password string, token string) (*model.User, error)
-	Update(id model.ID, fields ...UpdateField) (*model.User, error)
+	Update(id model.ID, fields ...model.UpdateField) (*model.User, error)
 	Delete(id model.ID) error
 }
 
@@ -75,7 +63,7 @@ func (r *SQLUserRepository) Create(email string, password string, token string) 
 	return &user, nil
 }
 
-func (r *SQLUserRepository) Update(id model.ID, fields ...UpdateField) (*model.User, error) {
+func (r *SQLUserRepository) Update(id model.ID, fields ...model.UpdateField) (*model.User, error) {
 	if len(fields) == 0 {
 		return nil, utils.AsError(model.ErrInvalidArgs, "failed updating user", "missing fields")
 	}
