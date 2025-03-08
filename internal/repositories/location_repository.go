@@ -7,8 +7,8 @@ import (
 )
 
 type LocationRepository interface {
-	GetLast(deviceID model.ID) (*model.Location, error)
-	GetAllBy(deviceID model.ID) ([]model.Location, error)
+	GetLastByDeviceID(deviceID model.ID) (*model.Location, error)
+	GetAllByDeviceID(deviceID model.ID) ([]model.Location, error)
 	Create(deviceID model.ID, latitude float64, longitude float64) (*model.Location, error)
 	Delete(id model.ID) error
 	DeleteAllBy(deviceID model.ID) (int64, error)
@@ -22,7 +22,7 @@ func NewSQLLocationRepository(db *sqlx.DB) LocationRepository {
 	return &SQLLocationRepository{db: db}
 }
 
-func (r *SQLLocationRepository) GetLast(deviceID model.ID) (*model.Location, error) {
+func (r *SQLLocationRepository) GetLastByDeviceID(deviceID model.ID) (*model.Location, error) {
 	query := `
 		SELECT id, created_at, updated_at,
 			device_id, latitude, longitude
@@ -36,13 +36,13 @@ func (r *SQLLocationRepository) GetLast(deviceID model.ID) (*model.Location, err
 
 	err := r.db.Get(&location, query, deviceID)
 	if err != nil {
-		return nil, handleSQLError("failed getting location", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &location, nil
 }
 
-func (r *SQLLocationRepository) GetAllBy(deviceID model.ID) ([]model.Location, error) {
+func (r *SQLLocationRepository) GetAllByDeviceID(deviceID model.ID) ([]model.Location, error) {
 	query := `
 		SELECT id, created_at, updated_at,
 			device_id, latitude, longitude
@@ -55,7 +55,7 @@ func (r *SQLLocationRepository) GetAllBy(deviceID model.ID) ([]model.Location, e
 
 	err := r.db.Select(&locations, query, deviceID)
 	if err != nil {
-		return nil, handleSQLError("failed getting locations by device", err)
+		return nil, handleSQLError(err)
 	}
 
 	return locations, nil
@@ -72,7 +72,7 @@ func (r *SQLLocationRepository) Create(deviceID model.ID, latitude float64, long
 
 	err := r.db.Get(&location, query, deviceID, latitude, longitude)
 	if err != nil {
-		return nil, handleSQLError("failed creating location", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &location, nil
@@ -83,7 +83,7 @@ func (r *SQLLocationRepository) Delete(id model.ID) error {
 
 	_, err := r.db.Exec(query, id)
 	if err != nil {
-		return handleSQLError("failed deleting location", err)
+		return handleSQLError(err)
 	}
 
 	return nil
@@ -94,12 +94,12 @@ func (r *SQLLocationRepository) DeleteAllBy(deviceID model.ID) (int64, error) {
 
 	res, err := r.db.Exec(query, deviceID)
 	if err != nil {
-		return 0, handleSQLError("failed deleting locations by device", err)
+		return 0, handleSQLError(err)
 	}
 
 	total, err := res.RowsAffected()
 	if err != nil {
-		return 0, handleSQLError("failed deleting locations by device", err)
+		return 0, handleSQLError(err)
 	}
 
 	return total, nil

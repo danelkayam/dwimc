@@ -9,7 +9,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-func handleSQLError(msg string, err error) error {
+func handleSQLError(err error) error {
 	destError := model.ErrOperationFailed
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -18,9 +18,9 @@ func handleSQLError(msg string, err error) error {
 
 	if sqliteErr, ok := err.(sqlite3.Error); ok {
 		if sqliteErr.Code == sqlite3.ErrConstraint && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
-			destError = model.ErrItemAlreadyExists
+			destError = model.ErrItemConflict
 		}
 	}
 
-	return fmt.Errorf("%s: %w (original error: %v)", msg, destError, err)
+	return fmt.Errorf("%w (original error: %v)", destError, err)
 }

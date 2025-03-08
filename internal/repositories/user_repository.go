@@ -10,9 +10,9 @@ import (
 )
 
 type UserRepository interface {
-	GetBy(id model.ID) (*model.User, error)
+	GetByID(id model.ID) (*model.User, error)
 	GetByEmail(email string) (*model.User, error)
-	Create(email string, password string, token string) (*model.User, error)
+	Create(email string, password string) (*model.User, error)
 	Update(id model.ID, fields ...model.UpdateField) (*model.User, error)
 	Delete(id model.ID) error
 }
@@ -25,10 +25,9 @@ func NewSQLUserRepository(db *sqlx.DB) UserRepository {
 	return &SQLUserRepository{db: db}
 }
 
-func (r *SQLUserRepository) GetBy(id model.ID) (*model.User, error) {
+func (r *SQLUserRepository) GetByID(id model.ID) (*model.User, error) {
 	query := `
-		SELECT id, created_at, updated_at,
-				email, password, token
+		SELECT id, created_at, updated_at, email, password
 		FROM users
 		WHERE id = ?
 	`
@@ -38,8 +37,7 @@ func (r *SQLUserRepository) GetBy(id model.ID) (*model.User, error) {
 
 func (r *SQLUserRepository) GetByEmail(email string) (*model.User, error) {
 	query := `
-		SELECT id, created_at, updated_at,
-				email, password, token
+		SELECT id, created_at, updated_at, email, password
 		FROM users
 		WHERE email = ?
 	`
@@ -47,17 +45,17 @@ func (r *SQLUserRepository) GetByEmail(email string) (*model.User, error) {
 	return getUserBy(r.db, query, email)
 }
 
-func (r *SQLUserRepository) Create(email string, password string, token string) (*model.User, error) {
+func (r *SQLUserRepository) Create(email string, password string) (*model.User, error) {
 	query := `
-		INSERT INTO users (email, password, token)
-			VALUES ($1, $2, $3)
+		INSERT INTO users (email, password)
+			VALUES ($1, $2)
 			RETURNING *
 	`
 	var user model.User
 
-	err := r.db.Get(&user, query, email, password, token)
+	err := r.db.Get(&user, query, email, password)
 	if err != nil {
-		return nil, handleSQLError("failed creating user", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &user, nil
@@ -65,7 +63,7 @@ func (r *SQLUserRepository) Create(email string, password string, token string) 
 
 func (r *SQLUserRepository) Update(id model.ID, fields ...model.UpdateField) (*model.User, error) {
 	if len(fields) == 0 {
-		return nil, utils.AsError(model.ErrInvalidArgs, "failed updating user", "missing fields")
+		return nil, utils.AsError(model.ErrInvalidArgs, "missing fields")
 	}
 
 	query := "UPDATE users SET "
@@ -91,7 +89,7 @@ func (r *SQLUserRepository) Update(id model.ID, fields ...model.UpdateField) (*m
 
 	err := r.db.Get(&user, query, args...)
 	if err != nil {
-		return nil, handleSQLError("failed updating user", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &user, nil
@@ -102,7 +100,7 @@ func (r *SQLUserRepository) Delete(id model.ID) error {
 
 	_, err := r.db.Exec(query, id)
 	if err != nil {
-		return handleSQLError("failed deleting user", err)
+		return handleSQLError(err)
 	}
 
 	return nil
@@ -113,7 +111,7 @@ func getUserBy[T model.ID | string](db *sqlx.DB, query string, field T) (*model.
 
 	err := db.Get(&user, query, field)
 	if err != nil {
-		return nil, handleSQLError("failed getting user", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &user, nil

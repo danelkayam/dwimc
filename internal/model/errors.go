@@ -3,12 +3,12 @@ package model
 import "errors"
 
 var (
-	ErrItemNotFound      = errors.New("item not found")
-	ErrItemAlreadyExists = errors.New("item already exists")
-	ErrInvalidArgs       = errors.New("invalid arguments")
-	ErrOperationFailed   = errors.New("operation failed")
-	ErrDatabase          = errors.New("database error")
-	ErrInternal          = errors.New("internal error")
+	ErrItemNotFound    = errors.New("item not found")
+	ErrItemConflict    = errors.New("item already exists")
+	ErrInvalidArgs     = errors.New("invalid arguments")
+	ErrOperationFailed = errors.New("operation failed")
+	ErrDatabase        = errors.New("database error")
+	ErrInternal        = errors.New("internal error")
 )
 
 var (

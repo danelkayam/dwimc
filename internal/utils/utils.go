@@ -1,7 +1,21 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
 
-func AsError(err error, msg string, reason string) error {
-	return fmt.Errorf("%s: %w: %s", msg, err, reason)
+	"golang.org/x/crypto/bcrypt"
+)
+
+func AsError(err error, reason string) error {
+	return fmt.Errorf("%s: %w", reason, err)
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hashedPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return err == nil
 }

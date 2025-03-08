@@ -10,7 +10,7 @@ import (
 )
 
 type DeviceRepository interface {
-	Get(id model.ID) (*model.Device, error)
+	GetByID(id model.ID) (*model.Device, error)
 	GetBySerial(userID model.ID, serial string) (*model.Device, error)
 	GetAllByUserID(userID model.ID) ([]model.Device, error)
 	Create(userId model.ID, serial string, name string, token string) (*model.Device, error)
@@ -27,7 +27,7 @@ func NewSQLDeviceRepository(db *sqlx.DB) DeviceRepository {
 	return &SQLDeviceRepository{db: db}
 }
 
-func (r *SQLDeviceRepository) Get(id model.ID) (*model.Device, error) {
+func (r *SQLDeviceRepository) GetByID(id model.ID) (*model.Device, error) {
 	query := `
 		SELECT id, created_at, updated_at,
 			user_id, serial, name, token
@@ -39,7 +39,7 @@ func (r *SQLDeviceRepository) Get(id model.ID) (*model.Device, error) {
 
 	err := r.db.Get(&device, query, id)
 	if err != nil {
-		return nil, handleSQLError("failed getting device", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &device, nil
@@ -57,7 +57,7 @@ func (r *SQLDeviceRepository) GetBySerial(userID model.ID, serial string) (*mode
 
 	err := r.db.Get(&device, query, userID, serial)
 	if err != nil {
-		return nil, handleSQLError("failed getting device", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &device, nil
@@ -76,7 +76,7 @@ func (r *SQLDeviceRepository) GetAllByUserID(userID model.ID) ([]model.Device, e
 
 	err := r.db.Select(&devices, query, userID)
 	if err != nil {
-		return nil, handleSQLError("failed getting devices by user", err)
+		return nil, handleSQLError(err)
 	}
 
 	return devices, nil
@@ -93,7 +93,7 @@ func (r *SQLDeviceRepository) Create(userID model.ID, serial string, name string
 
 	err := r.db.Get(&device, query, userID, serial, name, token)
 	if err != nil {
-		return nil, handleSQLError("failed creating device", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &device, nil
@@ -101,7 +101,7 @@ func (r *SQLDeviceRepository) Create(userID model.ID, serial string, name string
 
 func (r *SQLDeviceRepository) Update(id model.ID, fields ...model.UpdateField) (*model.Device, error) {
 	if len(fields) == 0 {
-		return nil, utils.AsError(model.ErrInvalidArgs, "failed updating device", "missing fields")
+		return nil, utils.AsError(model.ErrInvalidArgs, "missing fields")
 	}
 
 	query := "UPDATE devices SET "
@@ -127,7 +127,7 @@ func (r *SQLDeviceRepository) Update(id model.ID, fields ...model.UpdateField) (
 
 	err := r.db.Get(&device, query, args...)
 	if err != nil {
-		return nil, handleSQLError("failed updating device", err)
+		return nil, handleSQLError(err)
 	}
 
 	return &device, nil
@@ -138,7 +138,7 @@ func (r *SQLDeviceRepository) Delete(id model.ID) error {
 
 	_, err := r.db.Exec(query, id)
 	if err != nil {
-		return handleSQLError("failed deleting device", err)
+		return handleSQLError(err)
 	}
 
 	return nil
@@ -149,12 +149,12 @@ func (r *SQLDeviceRepository) DeleteAllByUserID(userID model.ID) (int64, error) 
 
 	res, err := r.db.Exec(query, userID)
 	if err != nil {
-		return 0, handleSQLError("failed deleting device by user", err)
+		return 0, handleSQLError(err)
 	}
 
 	total, err := res.RowsAffected()
 	if err != nil {
-		return 0, handleSQLError("failed deleting device by user", err)
+		return 0, handleSQLError(err)
 	}
 
 	return total, nil

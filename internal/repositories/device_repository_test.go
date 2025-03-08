@@ -1,7 +1,8 @@
-package repositories
+package repositories_test
 
 import (
 	"dwimc/internal/model"
+	"dwimc/internal/repositories"
 	testutils "dwimc/internal/test_utils"
 	"fmt"
 	"testing"
@@ -23,7 +24,7 @@ func TestDeviceRepository(t *testing.T) {
 
 	t.Run("create device", func(t *testing.T) {
 		db := setupTestDB(t)
-		repo := NewSQLDeviceRepository(db)
+		repo := repositories.NewSQLDeviceRepository(db)
 
 		t.Run("single valid device", func(t *testing.T) {
 			testDevice := &testDevice{
@@ -124,7 +125,7 @@ func TestDeviceRepository(t *testing.T) {
 
 				_, err = repo.Create(model.ID(device2.userID), device2.serial,
 					device2.name, device2.token)
-				assert.ErrorIsf(t, err, model.ErrItemAlreadyExists, "Expected error for duplicate token")
+				assert.ErrorIsf(t, err, model.ErrItemConflict, "Expected error for duplicate token")
 			})
 
 			t.Run("token - multiple users", func(t *testing.T) {
@@ -151,14 +152,14 @@ func TestDeviceRepository(t *testing.T) {
 
 				_, err = repo.Create(model.ID(device2.userID), device2.serial,
 					device2.name, device2.token)
-				assert.ErrorIsf(t, err, model.ErrItemAlreadyExists, "Expected error for duplicate token")
+				assert.ErrorIsf(t, err, model.ErrItemConflict, "Expected error for duplicate token")
 			})
 		})
 	})
 
 	t.Run("get device", func(t *testing.T) {
 		db := setupTestDB(t)
-		repo := NewSQLDeviceRepository(db)
+		repo := repositories.NewSQLDeviceRepository(db)
 
 		testDevices := generateTestDevices(withNumber(100), withSpecificUser(1))
 
@@ -171,7 +172,7 @@ func TestDeviceRepository(t *testing.T) {
 				testDevice.name, testDevice.token)
 			assertCreatedDevice(t, &testDevice, device, err)
 
-			retrieved, err := repo.Get(device.ID)
+			retrieved, err := repo.GetByID(device.ID)
 
 			assert.NoErrorf(t, err, "Get Device failed: %v", err)
 			assert.NotNilf(t, retrieved, "Get Device failed - device is nil")
@@ -190,7 +191,7 @@ func TestDeviceRepository(t *testing.T) {
 		t.Run("by id - none", func(t *testing.T) {
 			t.Parallel()
 
-			_, err := repo.Get(model.ID(100000002))
+			_, err := repo.GetByID(model.ID(100000002))
 			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
@@ -272,7 +273,7 @@ func TestDeviceRepository(t *testing.T) {
 
 	t.Run("update device", func(t *testing.T) {
 		db := setupTestDB(t)
-		repo := NewSQLDeviceRepository(db)
+		repo := repositories.NewSQLDeviceRepository(db)
 
 		const UPDATE_SLEEP_DURATION = 1 * time.Second
 
@@ -346,7 +347,7 @@ func TestDeviceRepository(t *testing.T) {
 
 	t.Run("delete device", func(t *testing.T) {
 		db := setupTestDB(t)
-		repo := NewSQLDeviceRepository(db)
+		repo := repositories.NewSQLDeviceRepository(db)
 
 		t.Run("by id", func(t *testing.T) {
 			t.Parallel()
@@ -368,7 +369,7 @@ func TestDeviceRepository(t *testing.T) {
 
 			assert.NoErrorf(t, err, "Delete Device failed: %v", err)
 
-			_, err = repo.Get(device.ID)
+			_, err = repo.GetByID(device.ID)
 			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 

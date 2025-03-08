@@ -1,7 +1,8 @@
-package repositories
+package repositories_test
 
 import (
 	"dwimc/internal/model"
+	"dwimc/internal/repositories"
 	"testing"
 
 	lom "github.com/samber/lo/mutable"
@@ -11,7 +12,7 @@ import (
 func TestLocationRepo(t *testing.T) {
 	t.Run("create location", func(t *testing.T) {
 		db := setupTestDB(t)
-		repo := NewSQLLocationRepository(db)
+		repo := repositories.NewSQLLocationRepository(db)
 
 		t.Run("multiple valid locations", func(t *testing.T) {
 			t.Parallel()
@@ -38,7 +39,7 @@ func TestLocationRepo(t *testing.T) {
 
 	t.Run("get location", func(t *testing.T) {
 		db := setupTestDB(t)
-		repo := NewSQLLocationRepository(db)
+		repo := repositories.NewSQLLocationRepository(db)
 
 		t.Run("last", func(t *testing.T) {
 			t.Parallel()
@@ -56,7 +57,7 @@ func TestLocationRepo(t *testing.T) {
 				assertCreatedLocation(t, &location, created, err)
 			}
 
-			retrieved, err := repo.GetLast(deviceID)
+			retrieved, err := repo.GetLastByDeviceID(deviceID)
 			assert.NoErrorf(t, err, "Get location failed: %v", err)
 
 			assertCreatedLocation(t, &locations[9], retrieved, err)
@@ -76,7 +77,7 @@ func TestLocationRepo(t *testing.T) {
 				assertCreatedLocation(t, &location, created, err)
 			}
 
-			_, err := repo.GetLast(model.ID(999999))
+			_, err := repo.GetLastByDeviceID(model.ID(999999))
 			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
@@ -106,7 +107,7 @@ func TestLocationRepo(t *testing.T) {
 			testLocations := locations[:10]
 			lom.Reverse(testLocations)
 
-			retrieved, err := repo.GetAllBy(deviceID)
+			retrieved, err := repo.GetAllByDeviceID(deviceID)
 			assert.NoErrorf(t, err, "Get location failed: %v", err)
 			assert.Equal(t, 10, len(retrieved), "Expected getting %d locations", 10)
 
@@ -129,7 +130,7 @@ func TestLocationRepo(t *testing.T) {
 				assertCreatedLocation(t, &location, created, err)
 			}
 
-			retrieved, err := repo.GetAllBy(model.ID(999999))
+			retrieved, err := repo.GetAllByDeviceID(model.ID(999999))
 			assert.NoErrorf(t, err, "Get location failed: %v", err)
 			assert.Equal(t, 0, len(retrieved), "Expected getting %d devices", 0)
 		})
@@ -137,7 +138,7 @@ func TestLocationRepo(t *testing.T) {
 
 	t.Run("delete location", func(t *testing.T) {
 		db := setupTestDB(t)
-		repo := NewSQLLocationRepository(db)
+		repo := repositories.NewSQLLocationRepository(db)
 
 		t.Run("by ID", func(t *testing.T) {
 			t.Parallel()
@@ -154,7 +155,7 @@ func TestLocationRepo(t *testing.T) {
 			err = repo.Delete(created.ID)
 			assert.NoErrorf(t, err, "Delete location failed: %v", err)
 
-			_, err = repo.GetLast(10)
+			_, err = repo.GetLastByDeviceID(10)
 			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error not found")
 		})
 
@@ -177,7 +178,7 @@ func TestLocationRepo(t *testing.T) {
 			err := repo.Delete(model.ID(99999))
 			assert.NoErrorf(t, err, "Delete location failed: %v", err)
 
-			retrieved, err := repo.GetAllBy(deviceID)
+			retrieved, err := repo.GetAllByDeviceID(deviceID)
 			assert.NoErrorf(t, err, "Get location failed: %v", err)
 			assert.Equal(t, 10, len(retrieved), "Expected getting %d devices", 10)
 		})
@@ -202,7 +203,7 @@ func TestLocationRepo(t *testing.T) {
 			assert.NoErrorf(t, err, "Delete location failed: %v", err)
 			assert.Equal(t, 10, int(total), "Expected getting %d devices", 10)
 
-			retrieved, err := repo.GetAllBy(deviceID)
+			retrieved, err := repo.GetAllByDeviceID(deviceID)
 			assert.NoErrorf(t, err, "Get location failed: %v", err)
 			assert.Equal(t, 0, len(retrieved), "Expected getting %d devices", 0)
 		})
@@ -227,7 +228,7 @@ func TestLocationRepo(t *testing.T) {
 			assert.NoErrorf(t, err, "Delete location failed: %v", err)
 			assert.Equal(t, 0, int(total), "Expected getting %d devices", 0)
 
-			retrieved, err := repo.GetAllBy(deviceID)
+			retrieved, err := repo.GetAllByDeviceID(deviceID)
 			assert.NoErrorf(t, err, "Get location failed: %v", err)
 			assert.Equal(t, 10, len(retrieved), "Expected getting %d devices", 10)
 		})

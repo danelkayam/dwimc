@@ -1,22 +1,19 @@
 package model
 
-import "database/sql"
-
 type User struct {
 	Model
-	Email    string         `db:"email"`
-	Password string         `db:"password"`
-	Token    sql.NullString `db:"token"`
+	Email    string `db:"email"`
+	Password string `db:"password"`
 }
 
 type userUpdateField struct{}
 
-func (userUpdateField) WithPassword(password string) UpdateField {
-	return WithField("password", password)
+func (userUpdateField) WithEmail(email string) UpdateField {
+	return WithField("email", email)
 }
 
-func (userUpdateField) WithToken(token string) UpdateField {
-	return WithField("token", token)
+func (userUpdateField) WithPassword(password string) UpdateField {
+	return WithField("password", password)
 }
 
 var UserUpdate userUpdateField
