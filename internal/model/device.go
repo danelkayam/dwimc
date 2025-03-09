@@ -10,18 +10,14 @@ type Device struct {
 	Token  sql.NullString `db:"token"`
 }
 
-type deviceUpdateField struct{}
-
-func (deviceUpdateField) WithSerial(serial string) UpdateField {
+func WithSerial(serial string) Field {
 	return WithField("serial", serial)
 }
 
-func (deviceUpdateField) WithName(name string) UpdateField {
+func WithName(name string) Field {
 	return WithField("name", name)
 }
 
-func (deviceUpdateField) WithToken(token string) UpdateField {
+func WithToken(token string) Field {
 	return WithField("token", token)
 }
-
-var DeviceUpdate deviceUpdateField

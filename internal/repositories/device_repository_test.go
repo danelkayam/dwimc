@@ -298,9 +298,9 @@ func TestDeviceRepository(t *testing.T) {
 			newToken := fmt.Sprintf("new-token-%d", device.ID)
 
 			updated, err := repo.Update(device.ID,
-				model.DeviceUpdate.WithSerial(newSerial),
-				model.DeviceUpdate.WithName(newName),
-				model.DeviceUpdate.WithToken(newToken),
+				model.WithSerial(newSerial),
+				model.WithName(newName),
+				model.WithToken(newToken),
 			)
 
 			assert.NoErrorf(t, err, "Update Device failed: %v", err)

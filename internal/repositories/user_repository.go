@@ -13,7 +13,7 @@ type UserRepository interface {
 	GetByID(id model.ID) (*model.User, error)
 	GetByEmail(email string) (*model.User, error)
 	Create(email string, password string) (*model.User, error)
-	Update(id model.ID, fields ...model.UpdateField) (*model.User, error)
+	Update(id model.ID, fields ...model.Field) (*model.User, error)
 	Delete(id model.ID) error
 }
 
@@ -61,7 +61,7 @@ func (r *SQLUserRepository) Create(email string, password string) (*model.User, 
 	return &user, nil
 }
 
-func (r *SQLUserRepository) Update(id model.ID, fields ...model.UpdateField) (*model.User, error) {
+func (r *SQLUserRepository) Update(id model.ID, fields ...model.Field) (*model.User, error) {
 	if len(fields) == 0 {
 		return nil, utils.AsError(model.ErrInvalidArgs, "missing fields")
 	}

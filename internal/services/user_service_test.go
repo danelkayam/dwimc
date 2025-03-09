@@ -122,8 +122,8 @@ func TestUserService(t *testing.T) {
 			mockRepo.On("Update", model.ID(1), mock.Anything).Return(mockUser, nil)
 
 			user, err := service.Update(mockUser.ID,
-				model.UserUpdate.WithEmail(email),
-				model.UserUpdate.WithPassword(password),
+				model.WithEmail(email),
+				model.WithPassword(password),
 			)
 			assert.NoErrorf(t, err, "Update User failed: %v", err)
 			assert.NotNilf(t, user, "Update User failed - user is nil")
@@ -154,7 +154,7 @@ func TestUserService(t *testing.T) {
 
 				mockRepo.On("Update", model.ID(1), mock.Anything).Return(mockUser, nil)
 
-				user, err := service.Update(mockUser.ID, model.UserUpdate.WithEmail("asldkfmasldkfm"))
+				user, err := service.Update(mockUser.ID, model.WithEmail("asldkfmasldkfm"))
 				assert.ErrorIsf(t, err, model.ErrInvalidArgs, "Expected error for invalid arguments")
 				assert.Nilf(t, user, "Expected nil user, got: %v", user)
 				mockRepo.AssertNotCalled(t, "Update")
@@ -168,7 +168,7 @@ func TestUserService(t *testing.T) {
 
 				mockRepo.On("Update", model.ID(1), mock.Anything).Return(mockUser, nil)
 
-				user, err := service.Update(mockUser.ID, model.UserUpdate.WithPassword("asldkfmasldkfm"))
+				user, err := service.Update(mockUser.ID, model.WithPassword("asldkfmasldkfm"))
 				assert.ErrorIsf(t, err, model.ErrInvalidArgs, "Expected error for invalid arguments")
 				assert.Nilf(t, user, "Expected nil user, got: %v", user)
 				mockRepo.AssertNotCalled(t, "Update")
@@ -209,7 +209,7 @@ func (m *MockUserRepository) Create(email, hashedPassword string) (*model.User, 
 	return args.Get(0).(*model.User), args.Error(1)
 }
 
-func (m *MockUserRepository) Update(id model.ID, fields ...model.UpdateField) (*model.User, error) {
+func (m *MockUserRepository) Update(id model.ID, fields ...model.Field) (*model.User, error) {
 	args := m.Called(id, fields)
 	return args.Get(0).(*model.User), args.Error(1)
 }

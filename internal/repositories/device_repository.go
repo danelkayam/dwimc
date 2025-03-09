@@ -14,7 +14,7 @@ type DeviceRepository interface {
 	GetBySerial(userID model.ID, serial string) (*model.Device, error)
 	GetAllByUserID(userID model.ID) ([]model.Device, error)
 	Create(userId model.ID, serial string, name string, token string) (*model.Device, error)
-	Update(id model.ID, fields ...model.UpdateField) (*model.Device, error)
+	Update(id model.ID, fields ...model.Field) (*model.Device, error)
 	Delete(id model.ID) error
 	DeleteAllByUserID(userID model.ID) (int64, error)
 }
@@ -99,7 +99,7 @@ func (r *SQLDeviceRepository) Create(userID model.ID, serial string, name string
 	return &device, nil
 }
 
-func (r *SQLDeviceRepository) Update(id model.ID, fields ...model.UpdateField) (*model.Device, error) {
+func (r *SQLDeviceRepository) Update(id model.ID, fields ...model.Field) (*model.Device, error) {
 	if len(fields) == 0 {
 		return nil, utils.AsError(model.ErrInvalidArgs, "missing fields")
 	}

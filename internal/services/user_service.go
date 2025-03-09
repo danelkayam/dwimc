@@ -8,7 +8,7 @@ import (
 
 type UserService interface {
 	Create(email string, password string) (*model.User, error)
-	Update(id model.ID, fields ...model.UpdateField) (*model.User, error)
+	Update(id model.ID, fields ...model.Field) (*model.User, error)
 	Delete(id model.ID) error
 }
 
@@ -21,11 +21,13 @@ func NewDefaultUserService(repo repositories.UserRepository) UserService {
 }
 
 func (s *DefaultUserService) Create(email string, password string) (*model.User, error) {
-	if err := validateEmail(email); err != nil {
-		return nil, err
-	}
+	validator := utils.NewFieldsValidator().
+		WithField(model.WithEmail(email)).
+		WithField(model.WithPassword(password)).
+		WithValidator("email", validateEmail).
+		WithValidator("password", validatePassword)
 
-	if err := validatePassword(password); err != nil {
+	if err := validator.Validate(); err != nil {
 		return nil, err
 	}
 
@@ -42,12 +44,13 @@ func (s *DefaultUserService) Create(email string, password string) (*model.User,
 	return user, nil
 }
 
-func (s *DefaultUserService) Update(id model.ID, fields ...model.UpdateField) (*model.User, error) {
+func (s *DefaultUserService) Update(id model.ID, fields ...model.Field) (*model.User, error) {
 	if len(fields) == 0 {
 		return nil, utils.AsError(model.ErrInvalidArgs, "Missing Fields")
 	}
 
-	validator := utils.NewUpdateFieldsValidator(fields).
+	validator := utils.NewFieldsValidator().
+		WithFields(fields).
 		WithValidator("email", validateEmail).
 		WithValidator("password", validatePassword)
 

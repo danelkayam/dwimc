@@ -26,8 +26,9 @@ func PasswordValidator(fl validator.FieldLevel) bool {
 		hasUpper   = regexp.MustCompile(`[A-Z]`).MatchString(password)
 		hasLower   = regexp.MustCompile(`[a-z]`).MatchString(password)
 		hasSpecial = regexp.MustCompile(`[^a-zA-Z0-9]`).MatchString(password)
+		hasNot     = regexp.MustCompile(`[^\s\t\;]`).MatchString(password)
 	)
-	return hasMinLen && hasMaxLen && hasNumber && hasUpper && hasLower && hasSpecial
+	return hasMinLen && hasMaxLen && hasNumber && hasUpper && hasLower && hasSpecial && hasNot
 }
 
 func IsValidEmail(email string) bool {

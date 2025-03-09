@@ -6,14 +6,10 @@ type User struct {
 	Password string `db:"password"`
 }
 
-type userUpdateField struct{}
-
-func (userUpdateField) WithEmail(email string) UpdateField {
+func WithEmail(email string) Field {
 	return WithField("email", email)
 }
 
-func (userUpdateField) WithPassword(password string) UpdateField {
+func WithPassword(password string) Field {
 	return WithField("password", password)
 }
-
-var UserUpdate userUpdateField
