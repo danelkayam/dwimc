@@ -2,13 +2,26 @@ package utils
 
 import "dwimc/internal/model"
 
+type Validate func(value any) error
+
+type Validator func(validates *map[string]Validate)
+
+func WithValidator(field string, validate Validate) Validator {
+	return func(validates *map[string]Validate) {
+		(*validates)[field] = validate
+	}
+}
+
 type With struct {
 	fieldsValuesMap    map[string]any
-	fieldsValidatesMap map[string]model.Validate
+	fieldsValidatesMap map[string]Validate
 }
 
 func NewWithValidator() *With {
-	return &With{}
+	return &With{
+		fieldsValuesMap:    map[string]any{},
+		fieldsValidatesMap: map[string]Validate{},
+	}
 }
 
 func (with *With) WithField(field model.Field) *With {
@@ -23,12 +36,12 @@ func (with *With) WithFields(fields []model.Field) *With {
 	return with
 }
 
-func (with *With) WithValidator(validator model.Validator) *With {
+func (with *With) WithValidator(validator Validator) *With {
 	validator(&with.fieldsValidatesMap)
 	return with
 }
 
-func (with *With) WithValidators(validators []model.Validator) *With {
+func (with *With) WithValidators(validators []Validator) *With {
 	for _, validator := range validators {
 		validator(&with.fieldsValidatesMap)
 	}

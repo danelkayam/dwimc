@@ -21,11 +21,11 @@ func NewDefaultUserService(repo repositories.UserRepository) UserService {
 }
 
 func (s *DefaultUserService) Create(email string, password string) (*model.User, error) {
-	validator := utils.NewFieldsValidator().
+	validator := utils.NewWithValidator().
 		WithField(model.WithEmail(email)).
 		WithField(model.WithPassword(password)).
-		WithValidator("email", validateEmail).
-		WithValidator("password", validatePassword)
+		WithValidator(emailValidator()).
+		WithValidator(passwordValidator())
 
 	if err := validator.Validate(); err != nil {
 		return nil, err
@@ -49,10 +49,10 @@ func (s *DefaultUserService) Update(id model.ID, fields ...model.Field) (*model.
 		return nil, utils.AsError(model.ErrInvalidArgs, "Missing Fields")
 	}
 
-	validator := utils.NewFieldsValidator().
+	validator := utils.NewWithValidator().
 		WithFields(fields).
-		WithValidator("email", validateEmail).
-		WithValidator("password", validatePassword)
+		WithValidator(emailValidator()).
+		WithValidator(passwordValidator())
 
 	if err := validator.Validate(); err != nil {
 		return nil, err
@@ -74,28 +74,18 @@ func (s *DefaultUserService) Delete(id model.ID) error {
 	return nil
 }
 
-func validateEmail(value any) error {
-	email, ok := value.(string)
-	if !ok || email == "" {
-		return utils.AsError(model.ErrInvalidArgs, "Invalid Email")
-	}
-
-	if !utils.IsValidEmail(email) {
-		return utils.AsError(model.ErrInvalidArgs, "Invalid Email")
-	}
-
-	return nil
+func emailValidator() utils.Validator {
+	return utils.WithFieldValidator(
+		"email",
+		"required,email,min=5,max=254",
+		"Invalid Email",
+	)
 }
 
-func validatePassword(value any) error {
-	password, ok := value.(string)
-	if !ok || password == "" {
-		return utils.AsError(model.ErrInvalidArgs, "Invalid Password")
-	}
-
-	if !utils.IsValidPassword(password) {
-		return utils.AsError(model.ErrInvalidArgs, "Invalid Password")
-	}
-
-	return nil
+func passwordValidator() utils.Validator {
+	return utils.WithFieldValidator(
+		"password",
+		"required,min=8,max=64,strong_password",
+		"Invalid Password",
+	)
 }

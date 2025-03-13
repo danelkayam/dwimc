@@ -10,14 +10,14 @@ var validate *validator.Validate
 
 func init() {
 	validate = validator.New()
-	err := validate.RegisterValidation("strong_password", PasswordValidator)
+	err := validate.RegisterValidation("strong_password", strongPassword)
 	if err != nil {
 		// WTF moment - should not get here
 		panic(err)
 	}
 }
 
-func PasswordValidator(fl validator.FieldLevel) bool {
+func strongPassword(fl validator.FieldLevel) bool {
 	password := fl.Field().String()
 	var (
 		hasMinLen  = len(password) >= 8
@@ -29,12 +29,4 @@ func PasswordValidator(fl validator.FieldLevel) bool {
 		hasNot     = regexp.MustCompile(`[^\s\t\;]`).MatchString(password)
 	)
 	return hasMinLen && hasMaxLen && hasNumber && hasUpper && hasLower && hasSpecial && hasNot
-}
-
-func IsValidEmail(email string) bool {
-	return validate.Var(email, "required,email,min=5,max=254") == nil
-}
-
-func IsValidPassword(password string) bool {
-	return validate.Var(password, "required,min=8,max=64,strong_password") == nil
 }

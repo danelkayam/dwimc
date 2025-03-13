@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"dwimc/internal/model"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
@@ -18,4 +19,14 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hashedPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil
+}
+
+func WithFieldValidator(field string, rules string, errMsg string) Validator {
+	return WithValidator(field, func(value any) error {
+		if err := validate.Var(value, rules); err != nil {
+			return AsError(model.ErrInvalidArgs, errMsg)
+		}
+
+		return nil
+	})
 }
