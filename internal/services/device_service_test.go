@@ -128,7 +128,7 @@ func TestDeviceService(t *testing.T) {
 	t.Run("get devices", func(t *testing.T) {
 		t.Run("get all by by userID", func(t *testing.T) {
 			t.Parallel()
-			
+
 			mockRepo, service := setupMockService()
 			mockRepo.On("GetAllByUserID", expected.UserID).Return(expectedDevices, nil)
 
@@ -139,7 +139,7 @@ func TestDeviceService(t *testing.T) {
 
 		t.Run("get all by by userID - none", func(t *testing.T) {
 			t.Parallel()
-			
+
 			mockRepo, service := setupMockService()
 			mockRepo.On("GetAllByUserID", model.ID(99999)).Return([]model.Device{}, nil)
 
@@ -150,41 +150,213 @@ func TestDeviceService(t *testing.T) {
 	})
 
 	t.Run("update device", func(t *testing.T) {
-		t.Run("valid device", func(t *testing.T) {
+		t.Run("all fields", func(t *testing.T) {
 			t.Parallel()
-			t.Fatalf("Not implemented")
+
+			expected := &model.Device{
+				Model: model.Model{
+					ID:        expected.ID,
+					CreatedAt: expected.CreatedAt,
+					UpdatedAt: expected.UpdatedAt,
+				},
+				UserID: expected.UserID,
+				Serial: "some-serial",
+				Name:   "some-name",
+				Token:  sql.NullString{String: "some-token-not-care", Valid: true},
+			}
+
+			fields := []model.Field{
+				model.WithSerial(expected.Serial),
+				model.WithName(expected.Name),
+			}
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Update", expected.ID, fields).Return(expected, nil)
+
+			device, err := service.Update(expected.ID, fields...)
+			assert.NoErrorf(t, err, "Update device failed: %v", err)
+			assert.NotNilf(t, device, "Update device failed - device is nil")
+			assert.Equalf(t, device, expected, "device mismatch")
+			mockRepo.AssertExpectations(t)
 		})
 
-		t.Run("invalid device", func(t *testing.T) {
+		t.Run("partial fields", func(t *testing.T) {
 			t.Parallel()
-			t.Fatalf("Not implemented")
+
+			expected := &model.Device{
+				Model: model.Model{
+					ID:        expected.ID,
+					CreatedAt: expected.CreatedAt,
+					UpdatedAt: expected.UpdatedAt,
+				},
+				UserID: expected.UserID,
+				Serial: "some-serial",
+				Name:   expected.Name,
+				Token:  sql.NullString{String: "some-token-not-care", Valid: true},
+			}
+
+			fields := []model.Field{
+				model.WithSerial(expected.Serial),
+			}
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Update", expected.ID, fields).Return(expected, nil)
+
+			device, err := service.Update(expected.ID, fields...)
+			assert.NoErrorf(t, err, "Update device failed: %v", err)
+			assert.NotNilf(t, device, "Update device failed - device is nil")
+			assert.Equalf(t, device, expected, "device mismatch")
+			mockRepo.AssertExpectations(t)
 		})
 
-		t.Run("empty fields", func(t *testing.T) {
+		t.Run("no fields", func(t *testing.T) {
 			t.Parallel()
-			t.Fatalf("Not implemented")
+
+			fields := []model.Field{}
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Update", expected.ID, fields).Return(expected, nil)
+
+			device, err := service.Update(expected.ID, fields...)
+			assert.ErrorIsf(t, err, model.ErrInvalidArgs, "Expected error for invalid fields")
+			assert.Nilf(t, device, "Expected nil device, got: %v", device)
+		})
+
+		t.Run("invalid field name", func(t *testing.T) {
+			t.Parallel()
+
+			fields := []model.Field{
+				model.WithField("not_existing_field", "some_value"),
+			}
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Update", expected.ID, fields).Return(expected, nil)
+
+			device, err := service.Update(expected.ID, fields...)
+			assert.ErrorIsf(t, err, model.ErrInvalidArgs, "Expected error for invalid fields")
+			assert.Nilf(t, device, "Expected nil device, got: %v", device)
+		})
+
+		t.Run("invalid fields value", func(t *testing.T) {
+			t.Parallel()
+
+			fields := []model.Field{
+				model.WithSerial(""),
+				model.WithName(""),
+			}
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Update", expected.ID, fields).Return(expected, nil)
+
+			device, err := service.Update(expected.ID, fields...)
+			assert.ErrorIsf(t, err, model.ErrInvalidArgs, "Expected error for invalid fields")
+			assert.Nilf(t, device, "Expected nil device, got: %v", device)
+		})
+
+		t.Run("device not found", func(t *testing.T) {
+			t.Parallel()
+
+			fields := []model.Field{
+				model.WithSerial(expected.Serial),
+				model.WithName(expected.Name),
+			}
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Update", model.ID(99999), fields).Return(nil, model.ErrItemNotFound)
+
+			device, err := service.Update(model.ID(99999), fields...)
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error for item not found")
+			assert.Nilf(t, device, "Expected nil device, got: %v", device)
+		})
+
+		t.Run("update unchanged fields", func(t *testing.T) {
+			t.Parallel()
+
+			fields := []model.Field{
+				model.WithSerial(expected.Serial),
+				model.WithName(expected.Name),
+			}
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Update", expected.ID, fields).Return(expected, nil)
+
+			device, err := service.Update(expected.ID, fields...)
+			assert.NoErrorf(t, err, "Update device failed: %v", err)
+			assert.NotNilf(t, device, "Update device failed - device is nil")
+			assert.Equalf(t, device, expected, "device mismatch")
+			mockRepo.AssertExpectations(t)
+		})
+
+		t.Run("database error", func(t *testing.T) {
+			t.Parallel()
+
+			fields := []model.Field{
+				model.WithSerial(expected.Serial),
+				model.WithName(expected.Name),
+			}
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Update", expected.ID, fields).Return(nil, model.ErrDatabase)
+
+			device, err := service.Update(expected.ID, fields...)
+			assert.ErrorIsf(t, err, model.ErrDatabase, "Expected error for database")
+			assert.Nilf(t, device, "Expected nil device, got: %v", device)
 		})
 	})
 
 	t.Run("delete device", func(t *testing.T) {
 		t.Run("by id", func(t *testing.T) {
 			t.Parallel()
-			t.Fatalf("Not implemented")
+
+			id := model.ID(1)
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Delete", id).Return(nil)
+
+			err := service.Delete(id)
+			assert.NoErrorf(t, err, "Delete device failed: %v", err)
+			mockRepo.AssertExpectations(t)
 		})
 
 		t.Run("by id - none", func(t *testing.T) {
 			t.Parallel()
-			t.Fatalf("Not implemented")
+
+			id := model.ID(99999)
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("Delete", id).Return(model.ErrItemNotFound)
+
+			err := service.Delete(id)
+			assert.ErrorIsf(t, err, model.ErrItemNotFound, "Expected error for item not found")
+			mockRepo.AssertExpectations(t)
 		})
 
 		t.Run("all by userID", func(t *testing.T) {
 			t.Parallel()
-			t.Fatalf("Not implemented")
+
+			userID := model.ID(1)
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("DeleteAllByUserID", userID).Return(int64(3), nil)
+
+			deleted, err := service.DeleteAllByUserID(userID)
+			assert.NoErrorf(t, err, "Delete device failed: %v", err)
+			assert.Equal(t, int64(3), deleted, "Expected deleting %d devices", 3)
+			mockRepo.AssertExpectations(t)
 		})
 
 		t.Run("all by userID - none", func(t *testing.T) {
 			t.Parallel()
-			t.Fatalf("Not implemented")
+
+			userID := model.ID(99999)
+
+			mockRepo, service := setupMockService()
+			mockRepo.On("DeleteAllByUserID", userID).Return(int64(0), nil)
+
+			deleted, err := service.DeleteAllByUserID(userID)
+			assert.NoErrorf(t, err, "Delete Devices failed: %v", err)
+			assert.Equal(t, int64(0), deleted, "Expected getting %d devices", 0)
+			mockRepo.AssertExpectations(t)
 		})
 	})
 }
