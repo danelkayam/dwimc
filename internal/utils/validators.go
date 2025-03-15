@@ -9,7 +9,7 @@ import (
 var validate *validator.Validate
 
 func init() {
-	validate = validator.New()
+	validate = validator.New(validator.WithRequiredStructEnabled())
 	err := validate.RegisterValidation("strong_password", strongPassword)
 	if err != nil {
 		// WTF moment - should not get here
