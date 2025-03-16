@@ -45,14 +45,12 @@ func (s *DefaultUserService) Create(email string, password string) (*model.User,
 }
 
 func (s *DefaultUserService) Update(id model.ID, fields ...model.Field) (*model.User, error) {
-	if len(fields) == 0 {
-		return nil, utils.AsError(model.ErrInvalidArgs, "Missing Fields")
-	}
-
 	validator := utils.NewWithValidator().
 		WithFields(fields).
 		WithValidator(emailValidator()).
-		WithValidator(passwordValidator())
+		WithValidator(passwordValidator()).
+		WithNoFieldsValidation(utils.AsError(model.ErrInvalidArgs, "Missing Fields")).
+		WithStrictModeValidation(utils.AsError(model.ErrInvalidArgs, "Invalid Fields"))
 
 	if err := validator.Validate(); err != nil {
 		return nil, err

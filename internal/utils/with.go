@@ -15,12 +15,16 @@ func WithValidator(field string, validate Validate) Validator {
 type With struct {
 	fieldsValuesMap    map[string]any
 	fieldsValidatesMap map[string]Validate
+	noFieldsError      error
+	strictModeError    error
 }
 
 func NewWithValidator() *With {
 	return &With{
 		fieldsValuesMap:    map[string]any{},
 		fieldsValidatesMap: map[string]Validate{},
+		noFieldsError:      nil,
+		strictModeError:    nil,
 	}
 }
 
@@ -48,7 +52,29 @@ func (with *With) WithValidators(validators []Validator) *With {
 	return with
 }
 
+func (with *With) WithNoFieldsValidation(noFieldsError error) *With {
+	with.noFieldsError = noFieldsError
+	return with
+}
+
+func (with *With) WithStrictModeValidation(strictModeError error) *With {
+	with.strictModeError = strictModeError
+	return with
+}
+
 func (with *With) Validate() error {
+	if len(with.fieldsValuesMap) == 0 && with.noFieldsError != nil {
+		return with.noFieldsError
+	}
+
+	if with.strictModeError != nil {
+		for field := range with.fieldsValuesMap {
+			if _, exists := with.fieldsValidatesMap[field]; !exists {
+				return with.strictModeError
+			}
+		}
+	}
+
 	for field, value := range with.fieldsValuesMap {
 		if validate, ok := with.fieldsValidatesMap[field]; ok {
 			if err := validate(value); err != nil {

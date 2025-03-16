@@ -63,14 +63,12 @@ func (s *DefaultDeviceService) Create(userId model.ID, serial string, name strin
 }
 
 func (s *DefaultDeviceService) Update(id model.ID, fields ...model.Field) (*model.Device, error) {
-	if len(fields) == 0 {
-		return nil, utils.AsError(model.ErrInvalidArgs, "Missing Fields")
-	}
-
 	validator := utils.NewWithValidator().
 		WithFields(fields).
 		WithValidator(serialValidator()).
-		WithValidator(nameValidator())
+		WithValidator(nameValidator()).
+		WithNoFieldsValidation(utils.AsError(model.ErrInvalidArgs, "Missing Fields")).
+		WithStrictModeValidation(utils.AsError(model.ErrInvalidArgs, "Invalid Fields"))
 
 	if err := validator.Validate(); err != nil {
 		return nil, err
