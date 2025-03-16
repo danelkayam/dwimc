@@ -95,7 +95,7 @@ func (s *DefaultDeviceService) Delete(id model.ID) error {
 func (s *DefaultDeviceService) DeleteAllByUserID(userID model.ID) (int64, error) {
 	deleted, err := s.repo.DeleteAllByUserID(userID)
 	if err != nil {
-		return 0, utils.AsError(err, "Failed to delete device")
+		return 0, utils.AsError(err, "Failed to delete devices")
 	}
 
 	return deleted, nil
