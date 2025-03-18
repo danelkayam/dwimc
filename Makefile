@@ -56,7 +56,7 @@ lint: install-tools
 
 run: build
 	@echo "Running $(APP_NAME)..."
-	@./$(BIN_DIR)/$(APP_NAME)
+	@$(BIN_DIR)/$(APP_NAME)
 
 update:
 	@echo "Updating modules..."
