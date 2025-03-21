@@ -1,10 +1,13 @@
 package main
 
 import (
+	dwimc_service "dwimc/internal"
 	"fmt"
 	dlog "log"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
@@ -23,6 +26,37 @@ func main() {
 	initLogger(config)
 
 	log.Info().Msg("Starting DWIMC app...")
+
+	termChan := make(chan os.Signal, 1)
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+	isShutingDown := false
+
+	service := dwimc_service.NewDwimcService(dwimc_service.ServiceParams{
+		Port:         config.Port,
+		DatabasePath: config.DatabasePath,
+		DebugMode:    config.DebugMode,
+		SecretApiKey: config.SecretApiKey,
+	})
+
+	go func() {
+		if err := service.Start(); err != nil && !isShutingDown {
+			log.Error().Msgf("Failed to start service: %v", err)
+			termChan <- syscall.SIGTERM
+		}
+	}()
+
+	log.Info().Msg("Starting DWIMC app... DONE")
+
+	<-termChan
+	isShutingDown = true
+
+	log.Info().Msg("Shutting down DWIMC app...")
+
+	if err := service.Stop(); err != nil {
+		log.Error().Msgf("Failed to stop service: %v", err)
+	}
+
+	log.Info().Msg("Shutting down DWIMC app... DONE")
 }
 
 type Config struct {
@@ -39,7 +73,10 @@ func loadConfig() (*Config, error) {
 
 	viper.AutomaticEnv()
 
-	viper.BindEnv("DATABASE_PATH")
+	err := viper.BindEnv("DATABASE_PATH")
+	if err != nil {
+		return nil, fmt.Errorf("failed to bind env: %w", err)
+	}
 
 	viper.SetDefault("PORT", 1337)
 	viper.SetDefault("DEBUG_MODE", false)
