@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type DevicesRepository interface {
@@ -42,11 +42,14 @@ func (repository *mongoDevicesRepository) init() error {
 	clientOptions.ApplyURI(repository.dbUri)
 	clientOptions.SetTimeout(DB_OP_TIMEOUT_DURATION)
 
-	dbClient, err := mongo.Connect(repository.context, clientOptions)
+	// TODO - set specific low connection pool size
 
+	dbClient, err := mongo.Connect(clientOptions)
 	if err != nil {
 		return err
 	}
+
+	// TODO - ping the mongodb server to check connectivity
 
 	collection := dbClient.Database(repository.dbName).Collection(COLLECTION_NAME_DEVICES)
 
@@ -138,7 +141,7 @@ func (repository *mongoDevicesRepository) update(params UpdateParams) (bool, err
 			},
 			"$setOnInsert": bson.M{"createdAt": updatedAt},
 		},
-		options.Update().SetUpsert(true),
+		options.UpdateOne().SetUpsert(true),
 	)
 
 	if err != nil {

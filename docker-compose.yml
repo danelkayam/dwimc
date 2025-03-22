@@ -1,31 +1,11 @@
-version: "3.8"
+version: "3.9"
 
 services:
-  backend:
-    restart: always
-    build: .
-    ports:
-      - 1337:1337
-    environment:
-      - DATABASE_URI=mongodb://mongo:27017
-      - DATABASE_NAME=dwimc
-      - SECRET_API_KEY=${SECRET_API_KEY}
-      - PORT=1337
-    depends_on:
-      - mongo
-    networks:
-      - backend-database
-
-  mongo:
-    container_name: mongo
-    restart: always
+  mongodb:
     image: mongo:latest
+    container_name: dwimc-mongo
+    restart: always
+    ports:
+      - "27017:27017"
     volumes:
       - ./data:/data/db
-    networks:
-      - backend-database
-    expose:
-      - 27017
-
-networks:
-  backend-database:
