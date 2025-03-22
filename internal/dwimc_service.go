@@ -2,13 +2,14 @@ package dwimc_service
 
 import (
 	"context"
-	// "dwimc/internal/repositories"
-	// "dwimc/internal/services"
+	"dwimc/internal/api"
+	"dwimc/internal/repositories"
+	"dwimc/internal/services"
+
 	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog/log"
@@ -43,24 +44,20 @@ func (s *DwimcService) Start() error {
 
 	s.db = db
 
-	// userRepo := repositories.NewSQLUserRepository(db)
-	// deviceRepo := repositories.NewSQLDeviceRepository(db)
-	// locationRepo := repositories.NewSQLLocationRepository(db)
+	userRepo := repositories.NewSQLUserRepository(db)
+	deviceRepo := repositories.NewSQLDeviceRepository(db)
+	locationRepo := repositories.NewSQLLocationRepository(db)
 
-	// userService := services.NewDefaultUserService(userRepo)
-	// deviceService := services.NewDefaultDeviceService(deviceRepo)
-	// locationService := services.NewDefaultLocationService(locationRepo)
+	userService := services.NewDefaultUserService(userRepo)
+	deviceService := services.NewDefaultDeviceService(deviceRepo)
+	locationService := services.NewDefaultLocationService(locationRepo)
 
-	// TODO - setup routers
-	// TODO - init gin routing
-
-	router := gin.Default()
-	// TODO - remove this
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "hello dwimc",
-		})
-	})
+	router := api.InitializeRouters(
+		s.params.DebugMode,
+		userService,
+		deviceService,
+		locationService,
+	)
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", s.params.Port),

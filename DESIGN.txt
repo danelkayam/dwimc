@@ -1,0 +1,46 @@
+REST API
+
+POST /api/user/auth/register - creates new user
+POST /api/user/auth/signin - get new user_token (JWT) for existing user
+
+Requires: user_token
+GET     /api/user/me - get current user based on user_token
+PUT     /api/user/ - update current user profile (name)
+DELETE  /api/user/ - delete current user, will delete all devices & locations
+
+Requires: user_token (JWT)
+GET     /api/devices/ - get user's devices
+POST    /api/devices/ - creates new device
+GET     /api/devices/:device_id - get device
+PUT     /api/devices/:device_id - update device
+DELETE  /api/devices/:device_id - delete device
+DELETE  /api/devices/:device_id/token - revoke specific device's token
+DELETE  /api/devices/tokens  - revokes all user's devices tokens (removes them)
+
+Requires: device_token
+GET     /api/devices/:device_id/locations - get all locations
+GET     /api/devices/:device_id/locations/latest - get last known location
+POST    /api/devices/:device_id/locations - creates new location reporting (there will be limitation for last X locations)
+DELETE  /api/devices/:device_id/locations - delete all locations
+DELETE  /api/devices/:device_id/locations/:location_id - delete specific location
+
+
+CLI / API
+dwimc create user 
+    --email danelkayam@dwimc.awesome
+    --passowrd Blahblah
+
+dwimc get user
+    --email danelkayam@dwimc.awesome
+    --id 1
+
+dwimc create device
+    --user_id 1
+    --serial "serenity_car_1234567"
+    --name "My Car"
+
+dwmic create location
+    --device 2
+    --latitude 34.239487 
+    --longitude 32.348957 
+    --token "asdofiajsdfojaosidfj" 
