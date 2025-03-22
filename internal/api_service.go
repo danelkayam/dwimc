@@ -47,8 +47,19 @@ func (s *APIService) Start() error {
 
 	s.client = client
 
-	deviceRepo := repositories.NewMongodbDeviceRepository(client, s.params.DatabaseName)
-	locationRepo := repositories.NewMongodbLocationRepository(client, s.params.DatabaseName)
+	context := context.Background()
+
+	deviceRepo, err := repositories.NewMongodbDeviceRepository(context, client, s.params.DatabaseName)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to initialize device repository")
+		return err
+	}
+
+	locationRepo, err := repositories.NewMongodbLocationRepository(context, client, s.params.DatabaseName)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to initialize location repository")
+		return err
+	}
 
 	deviceService := services.NewDefaultDeviceService(deviceRepo)
 	locationService := services.NewDefaultLocationService(locationRepo)
