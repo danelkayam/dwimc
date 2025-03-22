@@ -1,0 +1,14 @@
+
+
+Devices API
+GET     /api/devices/ - get user's devices
+GET     /api/devices/:device_id - get device
+POST    /api/devices/ - upsert device
+DELETE  /api/devices/:device_id - delete device
+
+Locations API
+GET     /api/devices/:device_id/locations - get all locations
+GET     /api/devices/:device_id/locations/latest - get last known location
+POST    /api/devices/:device_id/locations - creates new location reporting (there will be limitation for last X locations)
+DELETE  /api/devices/:device_id/locations - delete all locations
+DELETE  /api/devices/:device_id/locations/:location_id - delete specific location
