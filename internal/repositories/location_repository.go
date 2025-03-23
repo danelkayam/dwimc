@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"dwimc/internal/model"
+	"dwimc/internal/utils"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -16,7 +17,8 @@ type LocationRepository interface {
 	GetLocations(serial string) ([]model.Location, error)
 	GetLatestLocation(serial string) (*model.Location, error)
 	CreateLocation(location model.Location) (*model.Location, error)
-	DeleteLocation(id string) error
+	DeleteLocation(id string) (bool, error)
+	DeleteLocations(serial string) (bool, error)
 }
 
 type MongodbLocationRepository struct {
@@ -39,7 +41,7 @@ func NewMongodbLocationRepository(
 			},
 			Options: options.Index().SetUnique(true),
 		}); err != nil {
-		return nil, err
+		return nil, utils.AsError(model.ErrDatabase, err.Error())
 	}
 
 	return &MongodbLocationRepository{
@@ -49,25 +51,27 @@ func NewMongodbLocationRepository(
 }
 
 func (r *MongodbLocationRepository) GetLocations(serial string) ([]model.Location, error) {
+	locations := []model.Location{}
+
 	cursor, err := r.collection.Find(
 		r.context,
 		bson.M{"deviceSerial": serial},
 	)
 
 	if err != nil {
-		// TODO - handle db errors
+		if err == mongo.ErrNoDocuments {
+			return locations, nil
+		}
 		return nil, err
 	}
 
 	defer cursor.Close(r.context)
-	locations := []model.Location{}
 
 	for cursor.Next(r.context) {
 		var location model.Location
 
 		if err := cursor.Decode(&location); err != nil {
-			// TODO - handle db errors
-			return nil, err
+			return nil, utils.AsError(model.ErrDatabase, err.Error())
 		}
 
 		locations = append(locations, location)
@@ -87,10 +91,10 @@ func (r *MongodbLocationRepository) GetLatestLocation(serial string) (*model.Loc
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			// TODO - return ItemNotFoundError?
-			return nil, nil
+			return nil, utils.AsError(model.ErrItemNotFound, "device not found")
 		}
-		return nil, err
+
+		return nil, utils.AsError(model.ErrDatabase, err.Error())
 	}
 
 	return &location, nil
@@ -105,28 +109,38 @@ func (r *MongodbLocationRepository) CreateLocation(location model.Location) (*mo
 
 	result, err := r.collection.InsertOne(r.context, location)
 	if err != nil {
-		// TODO - handle db errors
-		return nil, err
+		return nil, utils.AsError(model.ErrOperationFailed, err.Error())
 	}
 
 	if result.InsertedID == nil {
-		// TODO - handle db errors
-		return nil, nil
+		return nil, utils.AsError(model.ErrOperationFailed, "failed to insert location")
 	}
 
 	return &location, nil
 }
 
-func (r *MongodbLocationRepository) DeleteLocation(id string) error {
-	_, err := r.collection.DeleteOne(
+func (r *MongodbLocationRepository) DeleteLocation(id string) (bool, error) {
+	result, err := r.collection.DeleteOne(
 		r.context,
 		bson.M{"_id": id},
 	)
 
 	if err != nil {
-		// TODO - handle db errors
-		return err
+		return false, utils.AsError(model.ErrDatabase, err.Error())
 	}
 
-	return nil
+	return result.DeletedCount > 0, nil
+}
+
+func (r *MongodbLocationRepository) DeleteLocations(serial string) (bool, error) {
+	result, err := r.collection.DeleteMany(
+		r.context,
+		bson.M{"deviceSerial": serial},
+	)
+
+	if err != nil {
+		return false, utils.AsError(model.ErrDatabase, err.Error())
+	}
+
+	return result.DeletedCount > 0, nil
 }

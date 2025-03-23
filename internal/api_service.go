@@ -61,7 +61,7 @@ func (s *APIService) Start() error {
 		return err
 	}
 
-	deviceService := services.NewDefaultDeviceService(deviceRepo)
+	deviceService := services.NewDefaultDeviceService(deviceRepo, locationRepo)
 	locationService := services.NewDefaultLocationService(locationRepo)
 
 	router := api.InitializeRouters(

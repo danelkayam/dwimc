@@ -3,6 +3,8 @@ package repositories
 import (
 	"context"
 	"dwimc/internal/model"
+	"dwimc/internal/utils"
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -16,7 +18,7 @@ type DeviceRepository interface {
 	GetDevices() ([]model.Device, error)
 	GetDevice(serial string) (*model.Device, error)
 	CreateDevice(serial, name string) (*model.Device, error)
-	DeleteDevice(serial string) error
+	DeleteDevice(serial string) (bool, error)
 }
 
 type MongodbDeviceRepository struct {
@@ -39,7 +41,7 @@ func NewMongodbDeviceRepository(
 			},
 			Options: options.Index().SetUnique(true),
 		}); err != nil {
-		return nil, err
+		return nil, utils.AsError(model.ErrDatabase, err.Error())
 	}
 
 	return &MongodbDeviceRepository{
@@ -49,21 +51,23 @@ func NewMongodbDeviceRepository(
 }
 
 func (r *MongodbDeviceRepository) GetDevices() ([]model.Device, error) {
+	devices := []model.Device{}
+
 	cursor, err := r.collection.Find(r.context, bson.M{})
 	if err != nil {
-		// TODO - handle db errors
+		if err == mongo.ErrNoDocuments {
+			return devices, nil
+		}
 		return nil, err
 	}
 
 	defer cursor.Close(r.context)
-	devices := []model.Device{}
 
 	for cursor.Next(r.context) {
 		var device model.Device
 
 		if err := cursor.Decode(&device); err != nil {
-			// TODO - handle db errors
-			return nil, err
+			return nil, utils.AsError(model.ErrDatabase, err.Error())
 		}
 
 		devices = append(devices, device)
@@ -82,11 +86,10 @@ func (r *MongodbDeviceRepository) GetDevice(serial string) (*model.Device, error
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			// TODO - return ItemNotFoundError?
-			return nil, nil
+			return nil, utils.AsError(model.ErrItemNotFound, "device not found")
 		}
 
-		return nil, err
+		return nil, utils.AsError(model.ErrDatabase, err.Error())
 	}
 
 	return &device, nil
@@ -118,27 +121,30 @@ func (r *MongodbDeviceRepository) CreateDevice(serial, name string) (*model.Devi
 	).Decode(&device)
 
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			// TODO - return ItemNotFoundError
-			return nil, nil
+		// we don't handle conflict since we are using upsert
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, utils.AsError(model.ErrItemNotFound, "device not found")
 		}
 
-		return nil, err
+		if errors.Is(err, mongo.ErrNilValue) {
+			return nil, utils.AsError(model.ErrInvalidArgs, err.Error())
+		}
+
+		return nil, utils.AsError(model.ErrDatabase, err.Error())
 	}
 
 	return &device, nil
 }
 
-func (r *MongodbDeviceRepository) DeleteDevice(serial string) error {
-	_, err := r.collection.DeleteOne(
+func (r *MongodbDeviceRepository) DeleteDevice(serial string) (bool, error) {
+	result, err := r.collection.DeleteOne(
 		r.context,
 		bson.M{"serial": serial},
 	)
 
 	if err != nil {
-		// TODO - handle db errors
-		return err
+		return false, utils.AsError(model.ErrDatabase, err.Error())
 	}
 
-	return nil
+	return result.DeletedCount > 0, nil
 }
