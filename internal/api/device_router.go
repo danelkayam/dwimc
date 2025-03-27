@@ -1,6 +1,7 @@
 package api
 
 import (
+	api_model "dwimc/internal/api/model"
 	"dwimc/internal/services"
 	"net/http"
 
@@ -21,30 +22,62 @@ func NewDeviceRouter(service services.DeviceService) *DeviceRouter {
 	return &DeviceRouter{service: service}
 }
 
-func (r *DeviceRouter) GetDevices(c *gin.Context) {
-	// TODO - implement this
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": "Not implemented!",
+func (r *DeviceRouter) GetAll(c *gin.Context) {
+	devices, err := r.service.GetAll()
+	if handleErrorResponse(c, err) {
+		return
+	}
+
+	c.JSON(http.StatusOK, api_model.Response{
+		Data:  devices,
+		Error: nil,
 	})
 }
 
-func (r *DeviceRouter) GetDevice(c *gin.Context) {
-	// TODO - implement this
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": "Not implemented!",
+func (r *DeviceRouter) Get(c *gin.Context) {
+	deviceID := c.Param("id")
+
+	device, err := r.service.Get(deviceID)
+	if handleErrorResponse(c, err) {
+		return
+	}
+
+	c.JSON(http.StatusOK, api_model.Response{
+		Data:  device,
+		Error: nil,
 	})
 }
 
-func (r *DeviceRouter) CreateDevice(c *gin.Context) {
-	// TODO - implement this
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": "Not implemented!",
+func (r *DeviceRouter) Create(c *gin.Context) {
+	var createParams api_model.CreateDevice
+
+	if bindJsonOrErrorResponse(c, &createParams) {
+		return
+	}
+
+	device, err := r.service.Create(createParams.Serial, createParams.Serial)
+	if handleErrorResponse(c, err) {
+		return
+	}
+
+	c.JSON(http.StatusOK, api_model.Response{
+		Data:  device,
+		Error: nil,
 	})
 }
 
-func (r *DeviceRouter) DeleteDevice(c *gin.Context) {
-	// TODO - implement this
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": "Not implemented!",
+func (r *DeviceRouter) Delete(c *gin.Context) {
+	deviceID := c.Param("id")
+
+	ok, err := r.service.Delete(deviceID)
+	if handleErrorResponse(c, err) {
+		return
+	}
+
+	c.JSON(http.StatusOK, api_model.Response{
+		Data: map[string]any{
+			"success": ok,
+		},
+		Error: nil,
 	})
 }

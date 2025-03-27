@@ -6,6 +6,7 @@ import (
 	"dwimc/internal/database"
 	"dwimc/internal/repositories"
 	"dwimc/internal/services"
+	_ "dwimc/internal/utils"
 	"fmt"
 	"net/http"
 	"time"

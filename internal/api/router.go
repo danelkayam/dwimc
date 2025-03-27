@@ -24,10 +24,10 @@ func InitializeRouters(debugMode bool,
 
 	// setup device routes
 	deviceGroup := apiGroup.Group("/device")
-	deviceGroup.GET("/", deviceRouter.GetDevices)
-	deviceGroup.GET("/:id", deviceRouter.GetDevice)
-	deviceGroup.POST("/", deviceRouter.CreateDevice)
-	deviceGroup.DELETE("/:id", deviceRouter.DeleteDevice)
+	deviceGroup.GET("/", deviceRouter.GetAll)
+	deviceGroup.GET("/:id", deviceRouter.Get)
+	deviceGroup.POST("/", deviceRouter.Create)
+	deviceGroup.DELETE("/:id", deviceRouter.Delete)
 
 	// setup location routes
 	locationGroup := apiGroup.Group("/devices/:device_id/locations")

@@ -5,6 +5,7 @@ import (
 	"dwimc/internal/model"
 	"dwimc/internal/utils"
 	"errors"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -15,10 +16,10 @@ import (
 const COLLECTION_NAME_DEVICES = "devices"
 
 type DeviceRepository interface {
-	GetDevices() ([]model.Device, error)
-	GetDevice(serial string) (*model.Device, error)
-	CreateDevice(serial, name string) (*model.Device, error)
-	DeleteDevice(serial string) (bool, error)
+	GetAll() ([]model.Device, error)
+	Get(id string) (*model.Device, error)
+	Create(serial string, name string) (*model.Device, error)
+	Delete(id string) (bool, error)
 }
 
 type MongodbDeviceRepository struct {
@@ -50,7 +51,7 @@ func NewMongodbDeviceRepository(
 	}, nil
 }
 
-func (r *MongodbDeviceRepository) GetDevices() ([]model.Device, error) {
+func (r *MongodbDeviceRepository) GetAll() ([]model.Device, error) {
 	devices := []model.Device{}
 
 	cursor, err := r.collection.Find(r.context, bson.M{})
@@ -76,12 +77,20 @@ func (r *MongodbDeviceRepository) GetDevices() ([]model.Device, error) {
 	return devices, nil
 }
 
-func (r *MongodbDeviceRepository) GetDevice(serial string) (*model.Device, error) {
+func (r *MongodbDeviceRepository) Get(id string) (*model.Device, error) {
 	var device model.Device
 
-	err := r.collection.FindOne(
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, utils.AsError(
+			model.ErrInvalidArgs,
+			fmt.Sprintf("invalid id: %s", id),
+		)
+	}
+
+	err = r.collection.FindOne(
 		r.context,
-		bson.M{"serial": serial},
+		bson.M{"_id": objectID},
 	).Decode(&device)
 
 	if err != nil {
@@ -95,7 +104,7 @@ func (r *MongodbDeviceRepository) GetDevice(serial string) (*model.Device, error
 	return &device, nil
 }
 
-func (r *MongodbDeviceRepository) CreateDevice(serial, name string) (*model.Device, error) {
+func (r *MongodbDeviceRepository) Create(serial string, name string) (*model.Device, error) {
 	var device model.Device
 
 	updatedAt := time.Now().UTC()
@@ -136,10 +145,18 @@ func (r *MongodbDeviceRepository) CreateDevice(serial, name string) (*model.Devi
 	return &device, nil
 }
 
-func (r *MongodbDeviceRepository) DeleteDevice(serial string) (bool, error) {
+func (r *MongodbDeviceRepository) Delete(id string) (bool, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return false, utils.AsError(
+			model.ErrInvalidArgs,
+			fmt.Sprintf("invalid id: %s", id),
+		)
+	}
+
 	result, err := r.collection.DeleteOne(
 		r.context,
-		bson.M{"serial": serial},
+		bson.M{"_id": objectID},
 	)
 
 	if err != nil {
