@@ -9,7 +9,8 @@ import (
 type LocationService interface {
 	GetAllByDevice(deviceID string) ([]model.Location, error)
 	GetLatestByDevice(deviceID string) (*model.Location, error)
-	Create(location model.Location) (*model.Location, error)
+	Create(deviceID string, latitude float64, longitude float64) (*model.Location, error)
+	DeleteAllByDevice(deviceID string) (bool, error)
 	Delete(id string) (bool, error)
 }
 
@@ -36,9 +37,13 @@ func (s *DefaultLocationService) GetLatestByDevice(deviceID string) (*model.Loca
 	return location, nil
 }
 
-func (s *DefaultLocationService) Create(location model.Location) (*model.Location, error) {
+func (s *DefaultLocationService) Create(deviceID string, latitude float64, longitude float64) (*model.Location, error) {
 	// TODO - validate location?
-	return s.repo.Create(location)
+	return s.repo.Create(deviceID, latitude, longitude)
+}
+
+func (s *DefaultLocationService) DeleteAllByDevice(deviceID string) (bool, error) {
+	return s.repo.DeleteAllByDevice(deviceID)
 }
 
 func (s *DefaultLocationService) Delete(id string) (bool, error) {

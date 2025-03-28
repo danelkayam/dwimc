@@ -31,11 +31,11 @@ func InitializeRouters(debugMode bool,
 
 	// setup location routes
 	locationGroup := apiGroup.Group("/devices/:device_id/locations")
-	locationGroup.GET("/", locationRouter.GetLocations)
-	locationGroup.GET("/latest", locationRouter.GetLatestLocation)
-	locationGroup.POST("/", locationRouter.CreateLocation)
-	locationGroup.DELETE("/", locationRouter.DeleteLocations)
-	locationGroup.DELETE("/:id", locationRouter.DeleteLocation)
+	locationGroup.GET("/", locationRouter.GetAll)
+	locationGroup.GET("/latest", locationRouter.GetLatest)
+	locationGroup.POST("/", locationRouter.Create)
+	locationGroup.DELETE("/", locationRouter.DeleteAll)
+	locationGroup.DELETE("/:id", locationRouter.Delete)
 
 	return router
 }

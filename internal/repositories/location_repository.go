@@ -17,7 +17,7 @@ const COLLECTION_NAME_LOCATIONS = "locations"
 type LocationRepository interface {
 	GetAllByDevice(deviceID string) ([]model.Location, error)
 	GetLatestByDevice(deviceID string) (*model.Location, error)
-	Create(location model.Location) (*model.Location, error)
+	Create(deviceID string, latitude float64, longitude float64) (*model.Location, error)
 	Delete(id string) (bool, error)
 	DeleteAllByDevice(deviceID string) (bool, error)
 }
@@ -117,12 +117,25 @@ func (r *MongodbLocationRepository) GetLatestByDevice(deviceID string) (*model.L
 	return &location, nil
 }
 
-func (r *MongodbLocationRepository) Create(location model.Location) (*model.Location, error) {
+func (r *MongodbLocationRepository) Create(deviceID string, latitude float64, longitude float64) (*model.Location, error) {
 	created := time.Now().UTC()
 
-	location.ID = bson.NewObjectID()
-	location.CreatedAt = created
-	location.UpdatedAt = created
+	objectID, err := bson.ObjectIDFromHex(deviceID)
+	if err != nil {
+		return nil, utils.AsError(
+			model.ErrInvalidArgs,
+			fmt.Sprintf("invalid id: %s", deviceID),
+		)
+	}
+
+	location := &model.Location{
+		ID:        bson.NewObjectID(),
+		CreatedAt: created,
+		UpdatedAt: created,
+		DeviceID:  objectID,
+		Latitude:  latitude,
+		Longitude: longitude,
+	}
 
 	result, err := r.collection.InsertOne(r.context, location)
 	if err != nil {
@@ -133,7 +146,7 @@ func (r *MongodbLocationRepository) Create(location model.Location) (*model.Loca
 		return nil, utils.AsError(model.ErrOperationFailed, "failed to insert location")
 	}
 
-	return &location, nil
+	return location, nil
 }
 
 func (r *MongodbLocationRepository) Delete(id string) (bool, error) {
