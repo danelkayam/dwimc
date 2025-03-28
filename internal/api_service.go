@@ -27,7 +27,7 @@ type APIServiceParams struct {
 	Port                 int
 	DatabaseURI          string
 	DatabaseName         string
-	SecretApiKey         string
+	SecretAPIKey         string
 	DebugMode            bool
 	LocationHistoryLimit int
 }
@@ -65,6 +65,7 @@ func (s *APIService) Start() error {
 
 	router := api.InitializeRouters(
 		s.params.DebugMode,
+		s.params.SecretAPIKey,
 		services.NewDefaultDeviceService(
 			deviceRepo,
 			locationRepo,

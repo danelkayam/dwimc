@@ -10,7 +10,9 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func InitializeRouters(debugMode bool,
+func InitializeRouters(
+	debugMode bool,
+	secretAPIKey string,
 	deviceService services.DeviceService,
 	locationService services.LocationService,
 ) *gin.Engine {
@@ -30,6 +32,11 @@ func InitializeRouters(debugMode bool,
 
 	router := gin.Default()
 	apiGroup := router.Group("/api")
+
+	// sets auth middleware
+	if len(secretAPIKey) > 0 {
+		apiGroup.Use(middlewares.ApiKeyAuthenticationMiddleware(secretAPIKey))
+	}
 
 	// setup device routes
 	deviceGroup := apiGroup.Group("/devices")

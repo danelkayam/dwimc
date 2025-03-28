@@ -37,7 +37,7 @@ func main() {
 		Port:                 config.Port,
 		DatabaseURI:          config.DatabaseURI,
 		DatabaseName:         config.DatabaseName,
-		SecretApiKey:         config.SecretApiKey,
+		SecretAPIKey:         config.SecretAPIKey,
 		DebugMode:            config.DebugMode,
 		LocationHistoryLimit: config.LocationHistoryLimit,
 	})
@@ -70,7 +70,7 @@ type Config struct {
 	DebugMode            bool   `mapstructure:"DEBUG_MODE"`
 	LogOutputType        string `mapstructure:"LOG_OUTPUT_TYPE" validate:"oneof=console json"`
 	LogLevel             string `mapstructure:"LOG_LEVEL" validate:"oneof=debug info warn error"`
-	SecretApiKey         string `mapstructure:"SECRET_API_KEY" validate:"omitempty,nonempty"`
+	SecretAPIKey         string `mapstructure:"SECRET_API_KEY" validate:"omitempty,nonempty"`
 	LocationHistoryLimit int    `mapstructure:"LOCATION_HISTORY_LIMIT"`
 }
 
