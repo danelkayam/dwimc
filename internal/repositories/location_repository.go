@@ -52,8 +52,6 @@ func NewMongodbLocationRepository(
 }
 
 func (r *MongodbLocationRepository) GetAllByDevice(deviceID string) ([]model.Location, error) {
-	locations := []model.Location{}
-
 	objectID, err := bson.ObjectIDFromHex(deviceID)
 	if err != nil {
 		return nil, utils.AsError(
@@ -61,6 +59,8 @@ func (r *MongodbLocationRepository) GetAllByDevice(deviceID string) ([]model.Loc
 			fmt.Sprintf("invalid id: %s", deviceID),
 		)
 	}
+
+	locations := []model.Location{}
 
 	cursor, err := r.collection.Find(
 		r.context,
@@ -90,8 +90,6 @@ func (r *MongodbLocationRepository) GetAllByDevice(deviceID string) ([]model.Loc
 }
 
 func (r *MongodbLocationRepository) GetLatestByDevice(deviceID string) (*model.Location, error) {
-	var location model.Location
-
 	objectID, err := bson.ObjectIDFromHex(deviceID)
 	if err != nil {
 		return nil, utils.AsError(
@@ -99,6 +97,8 @@ func (r *MongodbLocationRepository) GetLatestByDevice(deviceID string) (*model.L
 			fmt.Sprintf("invalid id: %s", deviceID),
 		)
 	}
+
+	var location model.Location
 
 	err = r.collection.FindOne(
 		r.context,
@@ -118,8 +118,6 @@ func (r *MongodbLocationRepository) GetLatestByDevice(deviceID string) (*model.L
 }
 
 func (r *MongodbLocationRepository) Create(deviceID string, latitude float64, longitude float64) (*model.Location, error) {
-	created := time.Now().UTC()
-
 	objectID, err := bson.ObjectIDFromHex(deviceID)
 	if err != nil {
 		return nil, utils.AsError(
@@ -128,6 +126,7 @@ func (r *MongodbLocationRepository) Create(deviceID string, latitude float64, lo
 		)
 	}
 
+	created := time.Now().UTC()
 	location := &model.Location{
 		ID:        bson.NewObjectID(),
 		CreatedAt: created,

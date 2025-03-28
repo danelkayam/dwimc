@@ -36,7 +36,6 @@ func (s *DefaultDeviceService) GetAll() ([]model.Device, error) {
 }
 
 func (s *DefaultDeviceService) Get(id string) (*model.Device, error) {
-	// TODO - validate fields?
 	return s.repo.Get(id)
 }
 
@@ -45,7 +44,6 @@ func (s *DefaultDeviceService) Exists(id string) (bool, error) {
 }
 
 func (s *DefaultDeviceService) Create(serial string, name string) (*model.Device, error) {
-	// TODO - validate fields?
 	return s.repo.Create(
 		strings.TrimSpace(serial),
 		strings.TrimSpace(name),
@@ -53,7 +51,6 @@ func (s *DefaultDeviceService) Create(serial string, name string) (*model.Device
 }
 
 func (s *DefaultDeviceService) Delete(id string) (bool, error) {
-	// TODO - validate fields?
 	defer func() {
 		// deletes all locations associated with the device
 		_, err := s.locationRepo.DeleteAllByDevice(id)

@@ -131,6 +131,10 @@ func (r *MongodbDeviceRepository) Exists(id string) (bool, error) {
 }
 
 func (r *MongodbDeviceRepository) Create(serial string, name string) (*model.Device, error) {
+	if len(serial) == 0 && len(name) == 0 {
+		return nil, utils.AsError(model.ErrInvalidArgs, "Fields are empty")
+	}
+
 	var device model.Device
 
 	updatedAt := time.Now().UTC()
