@@ -35,7 +35,7 @@ func (r *DeviceRouter) GetAll(c *gin.Context) {
 }
 
 func (r *DeviceRouter) Get(c *gin.Context) {
-	deviceID := c.Param("id")
+	deviceID := c.Param("device_id")
 
 	device, err := r.service.Get(deviceID)
 	if handleErrorResponse(c, err) {
@@ -55,7 +55,7 @@ func (r *DeviceRouter) Create(c *gin.Context) {
 		return
 	}
 
-	device, err := r.service.Create(createParams.Serial, createParams.Serial)
+	device, err := r.service.Create(createParams.Serial, createParams.Name)
 	if handleErrorResponse(c, err) {
 		return
 	}
@@ -67,7 +67,7 @@ func (r *DeviceRouter) Create(c *gin.Context) {
 }
 
 func (r *DeviceRouter) Delete(c *gin.Context) {
-	deviceID := c.Param("id")
+	deviceID := c.Param("device_id")
 
 	ok, err := r.service.Delete(deviceID)
 	if handleErrorResponse(c, err) {

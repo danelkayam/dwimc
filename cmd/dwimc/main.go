@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 
 	service "dwimc/internal"
+	"dwimc/internal/utils"
 )
 
 func main() {
@@ -64,11 +65,11 @@ func main() {
 type Config struct {
 	Port          int    `mapstructure:"PORT" validate:"gte=1,lte=65535"`
 	DatabaseURI   string `mapstructure:"DATABASE_URI" validate:"required,mongodb_connection_string"`
-	DatabaseName  string `mapstructure:"DATABASE_NAME" validate:"min=1"`
+	DatabaseName  string `mapstructure:"DATABASE_NAME" validate:"required,nonempty"`
 	DebugMode     bool   `mapstructure:"DEBUG_MODE"`
 	LogOutputType string `mapstructure:"LOG_OUTPUT_TYPE" validate:"oneof=console json"`
 	LogLevel      string `mapstructure:"LOG_LEVEL" validate:"oneof=debug info warn error"`
-	SecretApiKey  string `mapstructure:"SECRET_API_KEY"`
+	SecretApiKey  string `mapstructure:"SECRET_API_KEY" validate:"omitempty,nonempty"`
 }
 
 func loadConfig() (*Config, error) {
@@ -93,7 +94,7 @@ func loadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
-	validate := validator.New()
+	validate := utils.GetDefaultValidate()
 	if err := validate.Struct(cfg); err != nil {
 		if validationErrors, ok := err.(validator.ValidationErrors); ok {
 			for _, fieldErr := range validationErrors {

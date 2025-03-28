@@ -91,9 +91,10 @@ func (r *LocationRouter) DeleteAll(c *gin.Context) {
 }
 
 func (r *LocationRouter) Delete(c *gin.Context) {
+	deviceID := c.Param("device_id")
 	id := c.Param("id")
 
-	ok, err := r.service.Delete(id)
+	ok, err := r.service.Delete(deviceID, id)
 	if handleErrorResponse(c, err) {
 		return
 	}

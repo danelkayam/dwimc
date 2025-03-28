@@ -3,6 +3,7 @@ package services
 import (
 	"dwimc/internal/model"
 	"dwimc/internal/repositories"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
@@ -34,15 +35,20 @@ func (s *DefaultDeviceService) GetAll() ([]model.Device, error) {
 }
 
 func (s *DefaultDeviceService) Get(id string) (*model.Device, error) {
+	// TODO - validate fields?
 	return s.repo.Get(id)
 }
 
 func (s *DefaultDeviceService) Create(serial string, name string) (*model.Device, error) {
-	// TODO - fields validation?
-	return s.repo.Create(serial, name)
+	// TODO - validate fields?
+	return s.repo.Create(
+		strings.TrimSpace(serial),
+		strings.TrimSpace(name),
+	)
 }
 
 func (s *DefaultDeviceService) Delete(id string) (bool, error) {
+	// TODO - validate fields?
 	defer func() {
 		// deletes all locations associated with the device
 		_, err := s.locationRepo.DeleteAllByDevice(id)

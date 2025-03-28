@@ -18,7 +18,7 @@ type LocationRepository interface {
 	GetAllByDevice(deviceID string) ([]model.Location, error)
 	GetLatestByDevice(deviceID string) (*model.Location, error)
 	Create(deviceID string, latitude float64, longitude float64) (*model.Location, error)
-	Delete(id string) (bool, error)
+	Delete(deviceID string, id string) (bool, error)
 	DeleteAllByDevice(deviceID string) (bool, error)
 }
 
@@ -40,7 +40,7 @@ func NewMongodbLocationRepository(
 			Keys: bson.M{
 				"deviceId": 1,
 			},
-			Options: options.Index().SetUnique(true),
+			Options: options.Index().SetUnique(false),
 		}); err != nil {
 		return nil, utils.AsError(model.ErrDatabase, err.Error())
 	}
@@ -149,10 +149,29 @@ func (r *MongodbLocationRepository) Create(deviceID string, latitude float64, lo
 	return location, nil
 }
 
-func (r *MongodbLocationRepository) Delete(id string) (bool, error) {
+func (r *MongodbLocationRepository) Delete(deviceID string, id string) (bool, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return false, utils.AsError(
+			model.ErrInvalidArgs,
+			fmt.Sprintf("invalid id: %s", id),
+		)
+	}
+
+	deviceOID, err := bson.ObjectIDFromHex(deviceID)
+	if err != nil {
+		return false, utils.AsError(
+			model.ErrInvalidArgs,
+			fmt.Sprintf("invalid id: %s", deviceID),
+		)
+	}
+
 	result, err := r.collection.DeleteOne(
 		r.context,
-		bson.M{"_id": id},
+		bson.M{
+			"_id":      objectID,
+			"deviceId": deviceOID,
+		},
 	)
 
 	if err != nil {

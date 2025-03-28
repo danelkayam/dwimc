@@ -2,8 +2,11 @@ package api
 
 import (
 	"dwimc/internal/services"
+	"dwimc/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 func InitializeRouters(debugMode bool,
@@ -19,18 +22,22 @@ func InitializeRouters(debugMode bool,
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		utils.RegisterValidations(v)
+	}
+
 	router := gin.Default()
 	apiGroup := router.Group("/api")
 
 	// setup device routes
-	deviceGroup := apiGroup.Group("/device")
+	deviceGroup := apiGroup.Group("/devices")
 	deviceGroup.GET("/", deviceRouter.GetAll)
-	deviceGroup.GET("/:id", deviceRouter.Get)
+	deviceGroup.GET("/:device_id", deviceRouter.Get)
 	deviceGroup.POST("/", deviceRouter.Create)
-	deviceGroup.DELETE("/:id", deviceRouter.Delete)
+	deviceGroup.DELETE("/:device_id", deviceRouter.Delete)
 
 	// setup location routes
-	locationGroup := apiGroup.Group("/devices/:device_id/locations")
+	locationGroup := deviceGroup.Group("/:device_id/locations")
 	locationGroup.GET("/", locationRouter.GetAll)
 	locationGroup.GET("/latest", locationRouter.GetLatest)
 	locationGroup.POST("/", locationRouter.Create)

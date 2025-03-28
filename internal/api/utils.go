@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 func bindJsonOrErrorResponse(c *gin.Context, obj any) bool {
@@ -26,6 +27,10 @@ func handleErrorResponse(c *gin.Context, err error) bool {
 	case errors.Is(err, model.ErrDatabase),
 		errors.Is(err, model.ErrOperationFailed),
 		errors.Is(err, model.ErrInternal):
+		log.Error().
+			Err(err).
+			Msg("something went wrong")
+
 		c.JSON(http.StatusInternalServerError, api_model.Response{
 			Error: &api_model.ErrorResponse{
 				Message: "Something went wrong",
