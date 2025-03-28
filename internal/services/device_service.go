@@ -11,6 +11,7 @@ import (
 type DeviceService interface {
 	GetAll() ([]model.Device, error)
 	Get(id string) (*model.Device, error)
+	Exists(id string) (bool, error)
 	Create(id, name string) (*model.Device, error)
 	Delete(id string) (bool, error)
 }
@@ -37,6 +38,10 @@ func (s *DefaultDeviceService) GetAll() ([]model.Device, error) {
 func (s *DefaultDeviceService) Get(id string) (*model.Device, error) {
 	// TODO - validate fields?
 	return s.repo.Get(id)
+}
+
+func (s *DefaultDeviceService) Exists(id string) (bool, error) {
+	return s.repo.Exists(id)
 }
 
 func (s *DefaultDeviceService) Create(serial string, name string) (*model.Device, error) {

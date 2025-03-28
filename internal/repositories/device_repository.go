@@ -18,6 +18,7 @@ const COLLECTION_NAME_DEVICES = "devices"
 type DeviceRepository interface {
 	GetAll() ([]model.Device, error)
 	Get(id string) (*model.Device, error)
+	Exists(id string) (bool, error)
 	Create(serial string, name string) (*model.Device, error)
 	Delete(id string) (bool, error)
 }
@@ -102,6 +103,31 @@ func (r *MongodbDeviceRepository) Get(id string) (*model.Device, error) {
 	}
 
 	return &device, nil
+}
+
+func (r *MongodbDeviceRepository) Exists(id string) (bool, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return false, utils.AsError(
+			model.ErrInvalidArgs,
+			fmt.Sprintf("invalid id: %s", id),
+		)
+	}
+
+	err = r.collection.FindOne(
+		r.context,
+		bson.M{"_id": objectID},
+	).Err()
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, utils.AsError(model.ErrItemNotFound, "device not found")
+		}
+
+		return false, utils.AsError(model.ErrDatabase, err.Error())
+	}
+
+	return true, nil
 }
 
 func (r *MongodbDeviceRepository) Create(serial string, name string) (*model.Device, error) {

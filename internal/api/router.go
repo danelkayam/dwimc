@@ -1,6 +1,7 @@
 package api
 
 import (
+	"dwimc/internal/api/middlewares"
 	"dwimc/internal/services"
 	"dwimc/internal/utils"
 
@@ -11,7 +12,8 @@ import (
 
 func InitializeRouters(debugMode bool,
 	deviceService services.DeviceService,
-	locationService services.LocationService) *gin.Engine {
+	locationService services.LocationService,
+) *gin.Engine {
 
 	deviceRouter := NewDeviceRouter(deviceService)
 	locationRouter := NewLocationRouter(locationService)
@@ -38,6 +40,8 @@ func InitializeRouters(debugMode bool,
 
 	// setup location routes
 	locationGroup := deviceGroup.Group("/:device_id/locations")
+	locationGroup.Use(middlewares.DeviceExistsMiddleware(deviceService))
+
 	locationGroup.GET("/", locationRouter.GetAll)
 	locationGroup.GET("/latest", locationRouter.GetLatest)
 	locationGroup.POST("/", locationRouter.Create)

@@ -2,6 +2,7 @@ package api
 
 import (
 	api_model "dwimc/internal/api/model"
+	api_utils "dwimc/internal/api/utils"
 	"dwimc/internal/services"
 	"net/http"
 
@@ -27,7 +28,7 @@ func (r *LocationRouter) GetAll(c *gin.Context) {
 	deviceID := c.Param("device_id")
 
 	locations, err := r.service.GetAllByDevice(deviceID)
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 
@@ -41,7 +42,7 @@ func (r *LocationRouter) GetLatest(c *gin.Context) {
 	deviceID := c.Param("device_id")
 
 	location, err := r.service.GetLatestByDevice(deviceID)
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 
@@ -56,12 +57,12 @@ func (r *LocationRouter) Create(c *gin.Context) {
 
 	var location api_model.CreateLocation
 
-	if bindJsonOrErrorResponse(c, &location) {
+	if api_utils.BindJsonOrErrorResponse(c, &location) {
 		return
 	}
 
 	_, err := r.service.Create(deviceID, location.Latitude, location.Longitude)
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 
@@ -78,7 +79,7 @@ func (r *LocationRouter) DeleteAll(c *gin.Context) {
 	deviceID := c.Param("device_id")
 
 	ok, err := r.service.DeleteAllByDevice(deviceID)
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 
@@ -95,7 +96,7 @@ func (r *LocationRouter) Delete(c *gin.Context) {
 	id := c.Param("id")
 
 	ok, err := r.service.Delete(deviceID, id)
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 

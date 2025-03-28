@@ -2,6 +2,7 @@ package api
 
 import (
 	api_model "dwimc/internal/api/model"
+	api_utils "dwimc/internal/api/utils"
 	"dwimc/internal/services"
 	"net/http"
 
@@ -24,7 +25,7 @@ func NewDeviceRouter(service services.DeviceService) *DeviceRouter {
 
 func (r *DeviceRouter) GetAll(c *gin.Context) {
 	devices, err := r.service.GetAll()
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 
@@ -38,7 +39,7 @@ func (r *DeviceRouter) Get(c *gin.Context) {
 	deviceID := c.Param("device_id")
 
 	device, err := r.service.Get(deviceID)
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 
@@ -51,12 +52,12 @@ func (r *DeviceRouter) Get(c *gin.Context) {
 func (r *DeviceRouter) Create(c *gin.Context) {
 	var createParams api_model.CreateDevice
 
-	if bindJsonOrErrorResponse(c, &createParams) {
+	if api_utils.BindJsonOrErrorResponse(c, &createParams) {
 		return
 	}
 
 	device, err := r.service.Create(createParams.Serial, createParams.Name)
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 
@@ -70,7 +71,7 @@ func (r *DeviceRouter) Delete(c *gin.Context) {
 	deviceID := c.Param("device_id")
 
 	ok, err := r.service.Delete(deviceID)
-	if handleErrorResponse(c, err) {
+	if api_utils.HandleErrorResponse(c, err) {
 		return
 	}
 
