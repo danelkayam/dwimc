@@ -24,11 +24,12 @@ type APIService struct {
 }
 
 type APIServiceParams struct {
-	Port         int
-	DatabaseURI  string
-	DatabaseName string
-	SecretApiKey string
-	DebugMode    bool
+	Port                 int
+	DatabaseURI          string
+	DatabaseName         string
+	SecretApiKey         string
+	DebugMode            bool
+	LocationHistoryLimit int
 }
 
 func NewAPIService(params APIServiceParams) APIService {
@@ -62,13 +63,16 @@ func (s *APIService) Start() error {
 		return err
 	}
 
-	deviceService := services.NewDefaultDeviceService(deviceRepo, locationRepo)
-	locationService := services.NewDefaultLocationService(locationRepo)
-
 	router := api.InitializeRouters(
 		s.params.DebugMode,
-		deviceService,
-		locationService,
+		services.NewDefaultDeviceService(
+			deviceRepo,
+			locationRepo,
+		),
+		services.NewDefaultLocationService(
+			locationRepo,
+			s.params.LocationHistoryLimit,
+		),
 	)
 
 	s.server = &http.Server{

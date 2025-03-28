@@ -4,6 +4,8 @@ import (
 	"dwimc/internal/model"
 	"dwimc/internal/repositories"
 	"errors"
+
+	"github.com/rs/zerolog/log"
 )
 
 type LocationService interface {
@@ -15,11 +17,18 @@ type LocationService interface {
 }
 
 type DefaultLocationService struct {
-	repo repositories.LocationRepository
+	repo         repositories.LocationRepository
+	historyLimit int
 }
 
-func NewDefaultLocationService(repo repositories.LocationRepository) LocationService {
-	return &DefaultLocationService{repo: repo}
+func NewDefaultLocationService(
+	repo repositories.LocationRepository,
+	historyLimit int,
+) LocationService {
+	return &DefaultLocationService{
+		repo:         repo,
+		historyLimit: historyLimit,
+	}
 }
 
 func (s *DefaultLocationService) GetAllByDevice(deviceID string) ([]model.Location, error) {
@@ -38,7 +47,40 @@ func (s *DefaultLocationService) GetLatestByDevice(deviceID string) (*model.Loca
 }
 
 func (s *DefaultLocationService) Create(deviceID string, latitude float64, longitude float64) (*model.Location, error) {
-	return s.repo.Create(deviceID, latitude, longitude)
+	location, err := s.repo.Create(deviceID, latitude, longitude)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("deviceID", deviceID).
+			Float64("latitude", latitude).
+			Float64("longitude", longitude).
+			Msg("Failed to create location")
+
+		return nil, err
+	}
+
+	if s.historyLimit > 0 {
+		deleted, err := s.repo.DeleteOldByDevice(
+			location.DeviceID.Hex(),
+			s.historyLimit,
+		)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Str("deviceID", location.DeviceID.Hex()).
+				Int("skip", s.historyLimit).
+				Msg("Failed to delete old locations")
+
+		} else {
+			log.Info().
+				Str("deviceID", location.DeviceID.Hex()).
+				Int("skip", s.historyLimit).
+				Int64("deleted", deleted).
+				Msg("Success deleting old locations")
+		}
+	}
+
+	return location, nil
 }
 
 func (s *DefaultLocationService) DeleteAllByDevice(deviceID string) (bool, error) {

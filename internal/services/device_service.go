@@ -17,8 +17,8 @@ type DeviceService interface {
 }
 
 type DefaultDeviceService struct {
-	repo         repositories.DeviceRepository
-	locationRepo repositories.LocationRepository
+	repo                 repositories.DeviceRepository
+	locationRepo         repositories.LocationRepository
 }
 
 func NewDefaultDeviceService(
@@ -26,8 +26,8 @@ func NewDefaultDeviceService(
 	locationRepo repositories.LocationRepository,
 ) DeviceService {
 	return &DefaultDeviceService{
-		repo:         repo,
-		locationRepo: locationRepo,
+		repo:                 repo,
+		locationRepo:         locationRepo,
 	}
 }
 
@@ -44,10 +44,21 @@ func (s *DefaultDeviceService) Exists(id string) (bool, error) {
 }
 
 func (s *DefaultDeviceService) Create(serial string, name string) (*model.Device, error) {
-	return s.repo.Create(
+	device, err := s.repo.Create(
 		strings.TrimSpace(serial),
 		strings.TrimSpace(name),
 	)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("serial", serial).
+			Str("name", name).
+			Msg("Failed to create device")
+
+		return nil, err
+	}
+
+	return device, nil
 }
 
 func (s *DefaultDeviceService) Delete(id string) (bool, error) {

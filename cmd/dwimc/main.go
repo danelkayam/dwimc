@@ -34,11 +34,12 @@ func main() {
 	isShutingDown := false
 
 	service := service.NewAPIService(service.APIServiceParams{
-		Port:         config.Port,
-		DatabaseURI:  config.DatabaseURI,
-		DatabaseName: config.DatabaseName,
-		SecretApiKey: config.SecretApiKey,
-		DebugMode:    config.DebugMode,
+		Port:                 config.Port,
+		DatabaseURI:          config.DatabaseURI,
+		DatabaseName:         config.DatabaseName,
+		SecretApiKey:         config.SecretApiKey,
+		DebugMode:            config.DebugMode,
+		LocationHistoryLimit: config.LocationHistoryLimit,
 	})
 
 	go func() {
@@ -63,13 +64,14 @@ func main() {
 }
 
 type Config struct {
-	Port          int    `mapstructure:"PORT" validate:"gte=1,lte=65535"`
-	DatabaseURI   string `mapstructure:"DATABASE_URI" validate:"required,mongodb_connection_string"`
-	DatabaseName  string `mapstructure:"DATABASE_NAME" validate:"required,nonempty"`
-	DebugMode     bool   `mapstructure:"DEBUG_MODE"`
-	LogOutputType string `mapstructure:"LOG_OUTPUT_TYPE" validate:"oneof=console json"`
-	LogLevel      string `mapstructure:"LOG_LEVEL" validate:"oneof=debug info warn error"`
-	SecretApiKey  string `mapstructure:"SECRET_API_KEY" validate:"omitempty,nonempty"`
+	Port                 int    `mapstructure:"PORT" validate:"gte=1,lte=65535"`
+	DatabaseURI          string `mapstructure:"DATABASE_URI" validate:"required,mongodb_connection_string"`
+	DatabaseName         string `mapstructure:"DATABASE_NAME" validate:"required,nonempty"`
+	DebugMode            bool   `mapstructure:"DEBUG_MODE"`
+	LogOutputType        string `mapstructure:"LOG_OUTPUT_TYPE" validate:"oneof=console json"`
+	LogLevel             string `mapstructure:"LOG_LEVEL" validate:"oneof=debug info warn error"`
+	SecretApiKey         string `mapstructure:"SECRET_API_KEY" validate:"omitempty,nonempty"`
+	LocationHistoryLimit int    `mapstructure:"LOCATION_HISTORY_LIMIT"`
 }
 
 func loadConfig() (*Config, error) {
@@ -82,12 +84,18 @@ func loadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to bind env: %w", err)
 	}
 
+	err = viper.BindEnv("LOCATION_HISTORY_LIMIT")
+	if err != nil {
+		return nil, fmt.Errorf("failed to bind env: %w", err)
+	}
+
 	viper.SetDefault("PORT", 1337)
 	viper.SetDefault("DATABASE_NAME", "dwimc")
 	viper.SetDefault("DEBUG_MODE", false)
 	viper.SetDefault("LOG_OUTPUT_TYPE", "json")
 	viper.SetDefault("LOG_LEVEL", "info")
 	viper.SetDefault("SECRET_API_KEY", "")
+	viper.SetDefault("LOCATION_HISTORY_LIMIT", 0)
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {

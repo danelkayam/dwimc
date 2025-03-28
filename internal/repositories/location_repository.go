@@ -20,6 +20,7 @@ type LocationRepository interface {
 	Create(deviceID string, latitude float64, longitude float64) (*model.Location, error)
 	Delete(deviceID string, id string) (bool, error)
 	DeleteAllByDevice(deviceID string) (bool, error)
+	DeleteOldByDevice(deviceID string, skip int) (int64, error)
 }
 
 type MongodbLocationRepository struct {
@@ -199,4 +200,63 @@ func (r *MongodbLocationRepository) DeleteAllByDevice(deviceID string) (bool, er
 	}
 
 	return result.DeletedCount > 0, nil
+}
+
+func (r *MongodbLocationRepository) DeleteOldByDevice(deviceID string, skip int) (int64, error) {
+	objectID, err := bson.ObjectIDFromHex(deviceID)
+	if err != nil {
+		return 0, utils.AsError(
+			model.ErrInvalidArgs,
+			fmt.Sprintf("invalid id: %s", deviceID),
+		)
+	}
+
+	// gets all locations ids sort by creation - newer first
+	// skips the first ones to keep (by number of skip / limit)
+	// then, delete all these locations picked.
+	cursor, err := r.collection.Find(
+		r.context,
+		bson.M{"deviceId": objectID},
+		options.Find().
+			SetSort(bson.D{{Key: "createdAt", Value: -1}}).
+			SetSkip(int64(skip)).
+			SetProjection(bson.M{"_id": 1}),
+	)
+	if err != nil {
+		// there are no more than the limit which is fine
+		if err == mongo.ErrNoDocuments {
+			return 0, nil
+		}
+
+		return 0, utils.AsError(model.ErrDatabase, err.Error())
+	}
+
+	defer cursor.Close(r.context)
+
+	var oldLocations []struct {
+		ID bson.ObjectID `bson:"_id"`
+	}
+
+	if err := cursor.All(r.context, &oldLocations); err != nil {
+		return 0, utils.AsError(model.ErrDatabase, err.Error())
+	}
+
+	if len(oldLocations) == 0 {
+		return 0, nil
+	}
+
+	oldIDs := []bson.ObjectID{}
+	for _, loc := range oldLocations {
+		oldIDs = append(oldIDs, loc.ID)
+	}
+
+	result, err := r.collection.DeleteMany(
+		r.context,
+		bson.M{"_id": bson.M{"$in": oldIDs}},
+	)
+	if err != nil {
+		return 0, utils.AsError(model.ErrDatabase, err.Error())
+	}
+
+	return result.DeletedCount, nil
 }
