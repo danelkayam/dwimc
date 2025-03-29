@@ -22,23 +22,55 @@ func TestDeviceAPI(t *testing.T) {
 	})
 
 	t.Run("Create Device", func(t *testing.T) {
-		payload := api_model.CreateDevice{
-			Serial: "device-1-serial",
-			Name:   "device 1 name",
-		}
-		device := PerformOKRequest[model.Device](
-			t,
-			router,
-			"POST",
-			"/api/devices/",
-			ValidAPIKey,
-			payload,
-		)
+		t.Run("valid", func(t *testing.T) {
+			payload := api_model.CreateDevice{
+				Serial: "device-1-serial",
+				Name:   "device 1 name",
+			}
+			device := PerformOKRequest[model.Device](
+				t,
+				router,
+				"POST",
+				"/api/devices/",
+				ValidAPIKey,
+				payload,
+			)
+	
+			assert.Greater(t, device.CreatedAt.Unix(), int64(0), "CreatedAt should be valid time")
+			assert.Greater(t, device.UpdatedAt.Unix(), int64(0), "CreatedAt should be valid time")
+			assert.Equalf(t, payload.Serial, device.Serial, "Serial mismatch")
+			assert.Equalf(t, payload.Name, device.Name, "Name mismatch")
+		})
 
-		assert.Greater(t, device.CreatedAt.Unix(), int64(0), "CreatedAt should be valid time")
-		assert.Greater(t, device.UpdatedAt.Unix(), int64(0), "CreatedAt should be valid time")
-		assert.Equalf(t, payload.Serial, device.Serial, "Serial mismatch")
-		assert.Equalf(t, payload.Name, device.Name, "Name mismatch")
+		t.Run("invalid", func(t *testing.T) {
+			payloads := []api_model.CreateDevice{
+				{},
+				{
+					Serial: "   ",
+					Name:   "   ",
+				},
+				{
+					Serial: "device-X-serial",
+				},
+				{
+					Name: "device-X-name",
+				},
+			}
+
+			for _, payload := range payloads {
+				errRes := PerformFailedRequest(
+					t,
+					router,
+					"POST",
+					"/api/devices/",
+					ValidAPIKey,
+					payload,
+					http.StatusBadRequest,
+				)
+	
+				assert.Equal(t, "Bad request", errRes.Message, "Error message mismatch")				
+			}
+		})
 	})
 
 	t.Run("Update Device", func(t *testing.T) {
