@@ -35,7 +35,7 @@ func TestDeviceAPI(t *testing.T) {
 				validAPIKey,
 				payload,
 			)
-	
+
 			assert.Greater(t, device.CreatedAt.Unix(), int64(0), "CreatedAt should be valid time")
 			assert.Greater(t, device.UpdatedAt.Unix(), int64(0), "UpdatedAt should be valid time")
 			assert.Equalf(t, payload.Serial, device.Serial, "Serial mismatch")
@@ -67,8 +67,8 @@ func TestDeviceAPI(t *testing.T) {
 					payload,
 					http.StatusBadRequest,
 				)
-	
-				assert.Equal(t, "Bad request", errRes.Message, "Error message mismatch")				
+
+				assert.Equal(t, "Bad request", errRes.Message, "Error message mismatch")
 			}
 		})
 	})
