@@ -1,0 +1,27 @@
+# Port number of the service
+# Default: 1337
+PORT=
+# Mongodb Database URI.
+# Example: mongodb://localhost:27017
+DATABASE_URI=
+# Mongodb Database name
+# Default: dwimc
+DATABASE_NAME=
+# Secret API key to match all X-API-Key headers with
+# Default: empty 
+SECRET_API_KEY=
+# Zerolog output format: console or json
+# Default: json
+LOG_OUTPUT_TYPE=
+# Log level for logging.
+# Default: info
+LOG_LEVEL=
+# GIN debug mode option, debug will print all calls
+# Default: false
+DEBUG_MODE=
+# Defines how many locations per device to keep,
+# where new ones will replace old ones.
+# 0 - No history limit
+# 1..N - Number of locations per device to keep
+# Default: 0
+LOCATION_HISTORY_LIMIT=
