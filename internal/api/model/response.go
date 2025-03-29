@@ -1,7 +1,7 @@
 package api_model
 
-type Response struct {
-	Data  any            `json:"data"`
+type Response[T any] struct {
+	Data  T              `json:"data"`
 	Error *ErrorResponse `json:"error"`
 }
 

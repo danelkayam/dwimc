@@ -33,7 +33,7 @@ func HandleErrorResponse(c *gin.Context, err error) bool {
 
 		c.AbortWithStatusJSON(
 			http.StatusInternalServerError,
-			api_model.Response{
+			api_model.Response[any]{
 				Error: &api_model.ErrorResponse{
 					Message: "Something went wrong",
 				},
@@ -44,7 +44,7 @@ func HandleErrorResponse(c *gin.Context, err error) bool {
 	case errors.Is(err, model.ErrItemNotFound):
 		c.AbortWithStatusJSON(
 			http.StatusNotFound,
-			api_model.Response{
+			api_model.Response[any]{
 				Error: &api_model.ErrorResponse{
 					Message: "Not found",
 				},
@@ -55,7 +55,7 @@ func HandleErrorResponse(c *gin.Context, err error) bool {
 	case errors.Is(err, model.ErrItemConflict):
 		c.AbortWithStatusJSON(
 			http.StatusConflict,
-			api_model.Response{
+			api_model.Response[any]{
 				Error: &api_model.ErrorResponse{
 					Message: "Conflict",
 				},
@@ -66,7 +66,7 @@ func HandleErrorResponse(c *gin.Context, err error) bool {
 	case errors.Is(err, model.ErrInvalidArgs):
 		c.AbortWithStatusJSON(
 			http.StatusBadRequest,
-			api_model.Response{
+			api_model.Response[any]{
 				Error: &api_model.ErrorResponse{
 					Message: "Bad request",
 				},
@@ -77,7 +77,7 @@ func HandleErrorResponse(c *gin.Context, err error) bool {
 	case errors.Is(err, model.ErrUnauthenticated):
 		c.AbortWithStatusJSON(
 			http.StatusUnauthorized,
-			api_model.Response{
+			api_model.Response[any]{
 				Error: &api_model.ErrorResponse{
 					Message: "Unauthenticated",
 				},
@@ -88,7 +88,7 @@ func HandleErrorResponse(c *gin.Context, err error) bool {
 	case errors.Is(err, model.ErrUnauthorized):
 		c.AbortWithStatusJSON(
 			http.StatusForbidden,
-			api_model.Response{
+			api_model.Response[any]{
 				Error: &api_model.ErrorResponse{
 					Message: "Unauthorized",
 				},

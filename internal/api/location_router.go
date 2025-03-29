@@ -3,6 +3,7 @@ package api
 import (
 	api_model "dwimc/internal/api/model"
 	api_utils "dwimc/internal/api/utils"
+	"dwimc/internal/model"
 	"dwimc/internal/services"
 	"net/http"
 
@@ -32,7 +33,7 @@ func (r *LocationRouter) GetAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, api_model.Response{
+	c.JSON(http.StatusOK, api_model.Response[[]model.Location]{
 		Data:  locations,
 		Error: nil,
 	})
@@ -46,7 +47,7 @@ func (r *LocationRouter) GetLatest(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, api_model.Response{
+	c.JSON(http.StatusOK, api_model.Response[*model.Location]{
 		Data:  location,
 		Error: nil,
 	})
@@ -67,10 +68,8 @@ func (r *LocationRouter) Create(c *gin.Context) {
 	}
 
 	// no need to retrieve location as ack
-	c.JSON(http.StatusOK, api_model.Response{
-		Data: map[string]any{
-			"success": true,
-		},
+	c.JSON(http.StatusOK, api_model.Response[api_model.Operation]{
+		Data:  api_model.Operation{Success: true},
 		Error: nil,
 	})
 }
@@ -83,10 +82,8 @@ func (r *LocationRouter) DeleteAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, api_model.Response{
-		Data: map[string]any{
-			"success": ok,
-		},
+	c.JSON(http.StatusOK, api_model.Response[api_model.Operation]{
+		Data:  api_model.Operation{Success: ok},
 		Error: nil,
 	})
 }
@@ -100,10 +97,8 @@ func (r *LocationRouter) Delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, api_model.Response{
-		Data: map[string]any{
-			"success": ok,
-		},
+	c.JSON(http.StatusOK, api_model.Response[api_model.Operation]{
+		Data:  api_model.Operation{Success: ok},
 		Error: nil,
 	})
 }
