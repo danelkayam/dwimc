@@ -13,11 +13,11 @@ import (
 )
 
 func TestDeviceAPI(t *testing.T) {
-	const ValidAPIKey = "8ZZvULIqcPzxwsfnxbWoHUTh"
+	const validAPIKey = "8ZZvULIqcPzxwsfnxbWoHUTh"
 
 	router := SetupTestEnv(t, TestEnvParams{
 		DatabaseName:         "dwimc_test",
-		SecretAPIKey:         ValidAPIKey,
+		SecretAPIKey:         validAPIKey,
 		LocationHistoryLimit: 10,
 	})
 
@@ -32,12 +32,12 @@ func TestDeviceAPI(t *testing.T) {
 				router,
 				"POST",
 				"/api/devices/",
-				ValidAPIKey,
+				validAPIKey,
 				payload,
 			)
 	
 			assert.Greater(t, device.CreatedAt.Unix(), int64(0), "CreatedAt should be valid time")
-			assert.Greater(t, device.UpdatedAt.Unix(), int64(0), "CreatedAt should be valid time")
+			assert.Greater(t, device.UpdatedAt.Unix(), int64(0), "UpdatedAt should be valid time")
 			assert.Equalf(t, payload.Serial, device.Serial, "Serial mismatch")
 			assert.Equalf(t, payload.Name, device.Name, "Name mismatch")
 		})
@@ -63,7 +63,7 @@ func TestDeviceAPI(t *testing.T) {
 					router,
 					"POST",
 					"/api/devices/",
-					ValidAPIKey,
+					validAPIKey,
 					payload,
 					http.StatusBadRequest,
 				)
@@ -83,7 +83,7 @@ func TestDeviceAPI(t *testing.T) {
 			router,
 			"POST",
 			"/api/devices/",
-			ValidAPIKey,
+			validAPIKey,
 			payload,
 		)
 
@@ -94,7 +94,7 @@ func TestDeviceAPI(t *testing.T) {
 			router,
 			"POST",
 			"/api/devices/",
-			ValidAPIKey,
+			validAPIKey,
 			api_model.CreateDevice{
 				Serial: "device-2-serial",
 				Name:   "device 2 name mekmek",
@@ -118,7 +118,7 @@ func TestDeviceAPI(t *testing.T) {
 			router,
 			"POST",
 			"/api/devices/",
-			ValidAPIKey,
+			validAPIKey,
 			payload,
 		)
 
@@ -127,7 +127,7 @@ func TestDeviceAPI(t *testing.T) {
 			router,
 			"DELETE",
 			fmt.Sprintf("/api/devices/%s", device.ID.Hex()),
-			ValidAPIKey,
+			validAPIKey,
 			nil,
 		)
 
@@ -138,7 +138,7 @@ func TestDeviceAPI(t *testing.T) {
 			router,
 			"DELETE",
 			fmt.Sprintf("/api/devices/%s", device.ID.Hex()),
-			ValidAPIKey,
+			validAPIKey,
 			nil,
 		)
 
@@ -156,7 +156,7 @@ func TestDeviceAPI(t *testing.T) {
 				router,
 				"POST",
 				"/api/devices/",
-				ValidAPIKey,
+				validAPIKey,
 				payload,
 			)
 
@@ -165,7 +165,7 @@ func TestDeviceAPI(t *testing.T) {
 				router,
 				"GET",
 				fmt.Sprintf("/api/devices/%s", device.ID.Hex()),
-				ValidAPIKey,
+				validAPIKey,
 				nil,
 			)
 
@@ -178,7 +178,7 @@ func TestDeviceAPI(t *testing.T) {
 				router,
 				"GET",
 				fmt.Sprintf("/api/devices/%s", bson.NewObjectID().Hex()),
-				ValidAPIKey,
+				validAPIKey,
 				nil,
 				http.StatusNotFound,
 			)
@@ -193,10 +193,10 @@ func TestDeviceAPI(t *testing.T) {
 			router,
 			"GET",
 			"/api/devices/",
-			ValidAPIKey,
+			validAPIKey,
 			nil,
 		)
 
-		assert.Equal(t, 3, len(*devices), "Missing or too many devices")
+		assert.Equal(t, 3, len(devices), "Missing or too many devices")
 	})
 }

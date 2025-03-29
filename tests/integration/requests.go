@@ -12,6 +12,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type NoValidatedResponse struct {
+	Data  any                      `json:"data"`
+	Error *api_model.ErrorResponse `json:"error"`
+}
+
 func PerformOKRequest[T any](
 	t *testing.T,
 	router *gin.Engine,
@@ -19,7 +24,7 @@ func PerformOKRequest[T any](
 	url string,
 	apiKey string,
 	payload any,
-) *T {
+) T {
 	w := performRequest(router, method, url, apiKey, payload)
 	assert.Equal(t, http.StatusOK, w.Code)
 
@@ -30,7 +35,26 @@ func PerformOKRequest[T any](
 	assert.NotNilf(t, response.Data, "Response Data is nil")
 	assert.Nilf(t, response.Error, "Response Error is not nil")
 
-	return &response.Data
+	return response.Data
+}
+
+func PerformOKRequestNoValidateResponse(
+	t *testing.T,
+	router *gin.Engine,
+	method string,
+	url string,
+	apiKey string,
+	payload any,
+) *NoValidatedResponse {
+	w := performRequest(router, method, url, apiKey, payload)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var response NoValidatedResponse
+
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoErrorf(t, err, "Failed parsing response body")
+
+	return &response
 }
 
 func PerformFailedRequest(
