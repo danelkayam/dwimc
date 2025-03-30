@@ -1,9 +1,19 @@
-data
+.data/
+.vscode/
 .git
 .gitignore
 .editorconfig
+.dockerignore
+.env
 
 Dockerfile
 docker-compose.yml
-.dockerignore
+bin/
+bin-tools/
+tests/
+env_example
 
+*.out
+*.md
+*.log
+*.swp

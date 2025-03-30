@@ -19,7 +19,7 @@ Required envs passed to [Dockerfile](./Dockerfile):
 -- SECRET_API_KEY - auth key which will be compared with requests X-API-Key header content.
 ```
 
-> **_NOTE:_** `SECRET_API_KEY` is a global auth key to all clients and not used to generate / validate client specific auth key. Basic / GWT authentication was not implemented yet.
+> **_NOTE:_** `SECRET_API_KEY` is a global auth key to all clients and not used to generate / validate client specific auth key. Basic / JWT authentication was not implemented yet.
 
 
 ## Local running

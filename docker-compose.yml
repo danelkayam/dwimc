@@ -1,10 +1,22 @@
-
 services:
-  mongodb:
+  dwimc:
+    build: .
+    restart: unless-stopped
+    ports:
+      - 1337:1337
+    environment:
+      - DATABASE_URI=mongodb://mongo:27017
+      - DATABASE_NAME=dwimc
+      - SECRET_API_KEY=${SECRET_API_KEY}
+      - PORT=1337
+    depends_on:
+      - mongo
+
+  mongo:
     image: mongo:latest
     container_name: dwimc-mongo
-    restart: always
+    restart: unless-stopped
     ports:
-      - "27017:27017"
+      - 27017:27017
     volumes:
       - ./.data:/data/db
