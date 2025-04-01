@@ -17,6 +17,7 @@ func InitializeRouters(
 	locationService services.LocationService,
 ) *gin.Engine {
 
+	statusRouter := NewStatusRouter()
 	deviceRouter := NewDeviceRouter(deviceService)
 	locationRouter := NewLocationRouter(locationService)
 
@@ -31,6 +32,9 @@ func InitializeRouters(
 	}
 
 	router := gin.Default()
+	router.GET("/healthz", statusRouter.Health)
+	router.GET("/livez", statusRouter.Live)
+
 	apiGroup := router.Group("/api")
 
 	// sets auth middleware
