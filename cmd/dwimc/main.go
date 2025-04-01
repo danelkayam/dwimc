@@ -65,7 +65,7 @@ func main() {
 
 type Config struct {
 	Port                 int    `mapstructure:"PORT" validate:"gte=1,lte=65535"`
-	DatabaseURI          string `mapstructure:"DATABASE_URI" validate:"required,mongodb_connection_string"`
+	DatabaseURI          string `mapstructure:"DATABASE_URI" validate:"required,nonempty"`
 	DatabaseName         string `mapstructure:"DATABASE_NAME" validate:"required,nonempty"`
 	DebugMode            bool   `mapstructure:"DEBUG_MODE"`
 	LogOutputType        string `mapstructure:"LOG_OUTPUT_TYPE" validate:"oneof=console json"`
@@ -89,7 +89,7 @@ func loadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to bind env: %w", err)
 	}
 
-	viper.SetDefault("PORT", 1337)
+	viper.SetDefault("PORT", 8080)
 	viper.SetDefault("DATABASE_NAME", "dwimc")
 	viper.SetDefault("DEBUG_MODE", false)
 	viper.SetDefault("LOG_OUTPUT_TYPE", "json")
