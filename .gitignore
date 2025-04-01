@@ -12,5 +12,8 @@
 *.out
 
 # project files
-data
 .env
+.data/
+.vscode
+bin/
+bin-tools/

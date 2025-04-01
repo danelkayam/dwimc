@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
-  backend:
-    restart: always
+  dwimc:
     build: .
+    restart: unless-stopped
     ports:
       - 1337:1337
     environment:
@@ -13,19 +11,12 @@ services:
       - PORT=1337
     depends_on:
       - mongo
-    networks:
-      - backend-database
 
   mongo:
-    container_name: mongo
-    restart: always
     image: mongo:latest
+    container_name: dwimc-mongo
+    restart: unless-stopped
+    ports:
+      - 27017:27017
     volumes:
-      - ./data:/data/db
-    networks:
-      - backend-database
-    expose:
-      - 27017
-
-networks:
-  backend-database:
+      - ./.data:/data/db

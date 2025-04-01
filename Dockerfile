@@ -1,28 +1,36 @@
-FROM golang:latest AS builder
+FROM golang:1.24.1 AS builder
 
 WORKDIR /build
 
-COPY go.mod .
-COPY go.sum .
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+RUN make build
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./out/dwimc ./cmd/dwimc/
 
+FROM alpine:3.21.3
 
-FROM alpine:3.19.1
-
-RUN mkdir /app
+RUN apk add --no-cache ca-certificates && \
+    mkdir /app && \
+    adduser -D -g '' dwimcuser && \
+    chown -R dwimcuser /app
 
 WORKDIR /app
 
-COPY --from=builder /build/out/dwimc .
+COPY --from=builder /build/bin/dwimc .
+RUN chmod +x /app/dwimc && \
+    chown dwimcuser /app/dwimc
+
+USER dwimcuser
 
 ENV DATABASE_URI="mongodb://mongo" \
     DATABASE_NAME="dwimc" \
-    SECRET_API_KEY="please_change_me_api_key" \
-    PORT="1337" \
-    GIN_MODE=release
+    PORT=1337 \
+    GIN_MODE="release" \
+    LOG_OUTPUT_TYPE="console" \
+    LOG_LEVEL="info" \
+    DEBUG_MODE=false \
+    LOCATION_HISTORY_LIMIT=10
 
 CMD [ "/app/dwimc" ]
